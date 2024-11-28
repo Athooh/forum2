@@ -1,0 +1,21 @@
+{{define "content"}}
+<section class="login-container">
+    <div class="title">
+        <i class="fa-solid fa-right-to-bracket"></i>
+        <h2>Sign in to your account</h2>
+        <p>Or <span><a href="#">create a new account</a></span></p>
+    </div>
+
+    <form action="/login" method="POST" class="login-form">
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit" class="btn-login">Sign in</button>
+    </form>
+</section>
+{{end}}
