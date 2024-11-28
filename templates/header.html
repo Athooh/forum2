@@ -1,4 +1,4 @@
-{{define "base"}}
+{{define "header"}}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,9 +25,6 @@
             </div>
         </nav>
     </header>
-    <main>
-        {{block "content" .}}{{end}} <!-- This is where login.html will inject content -->
-    </main>
 </body>
 </html>
 {{end}}

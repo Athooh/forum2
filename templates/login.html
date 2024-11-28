@@ -1,9 +1,10 @@
-{{define "content"}}
+{{define "login"}}
+{{template "header" .}}
 <section class="login-container">
     <div class="title">
         <i class="fa-solid fa-right-to-bracket"></i>
         <h2>Sign in to your account</h2>
-        <p>Or <span><a href="#">create a new account</a></span></p>
+        <p>Or <span><a href="/signup">create a new account</a></span></p>
     </div>
 
     <form action="/login" method="POST" class="login-form">
