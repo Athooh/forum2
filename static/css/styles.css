@@ -115,28 +115,28 @@ header nav{
 
 /* LOGIN */
 
-.login-container {
+.login-container, .signup-container {
     max-width: 400px;
-    margin: 50px auto;
+    margin: 100px auto 50px;
     padding: 20px;
     border: 1px solid #ddd;
     border-radius: 8px;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.login-container .title {
+.login-container .title, .signup-container .title {
     display: flex; 
     justify-content: space-between;
     align-items: center;
     flex-direction: column;
 }
 
-.login-container .title i {
+.login-container .title i, .signup-container .title i {
     font-size: 3rem;
     color: var(--header-background);
 }
 
-.login-container .title h2 {
+.login-container .title h2, .signup-container .title h2 {
     font-family: "poppins";
     font-size: 1.8rem;
     font-weight: 600;
@@ -144,11 +144,11 @@ header nav{
     padding-block: 0;
 }
 
-.login-container .title p span {
+.login-container .title p span, .signup-container .title p span {
     color: var(--header-background);
 }
 
-.login-container h1 {
+.login-container h1, .signup-container h1 {
     text-align: center;
     color: #333;
 }
