@@ -292,6 +292,10 @@ header.header-container {
     font-size: .9rem;
 }
 
+.post-card h4 {
+    font-weight: 600;
+}
+
 .profile {
     display: flex;
     justify-content: space-between;
@@ -316,7 +320,11 @@ header.header-container {
     background: #f4ceff;
     padding: 2px 4px;
     border-radius: 20px;
+}
+
+.category-tag p {
     font-size: .7rem;
+    color: var(--header-background);
 }
 
 .avatar-name p {
