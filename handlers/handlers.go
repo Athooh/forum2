@@ -51,7 +51,7 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	// fmt.Println("Available templates:", templates.Templates())
 
 	data := map[string]interface{}{
-		"Title": "Login - Forum",
+		"Title": "Signup - Forum",
 	}
 
 	err := templates.ExecuteTemplate(w, "signup", data)
