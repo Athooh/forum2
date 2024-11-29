@@ -15,6 +15,7 @@ func main() {
 	http.HandleFunc("/", handlers.HomeHandler)
 	http.HandleFunc("/login", handlers.LoginHandler)
 	http.HandleFunc("/signup", handlers.SignUpHandler)
+	http.HandleFunc("/dashboard", handlers.DashboardHandler)
 
 	// Start the server
 	fmt.Println("Server starting at port localhost:8080")

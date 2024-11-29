@@ -39,19 +39,15 @@ p {
     color: var(--secondary-color);
 }
 
-header {
-    /* border-bottom: 1px  solid #dddddd; */
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Adds shadow on the bottom */
-}
 
-header nav{
+header.header-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding-inline: 12rem;
     padding-block: 1rem;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
 }
-
 .menu {
     display: flex;
     justify-content: space-between;
@@ -186,3 +182,54 @@ header nav{
 }
 
 
+/* DASHBOARD */
+.dash-container {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 5px; 
+}
+
+.sidebar {
+    width: 20rem;
+    height: 100Vh;
+    background-color: var(--primary-color);
+    border-right: 1px solid #f1f1f1;
+}
+
+.sidebar-links, .side-categoies {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding-left: 2rem;
+}
+
+
+.sidebar-links a, .side-categoies a{
+    color: var(--secondary-color);
+    width: 14rem;
+    font-size: .9rem;
+}
+
+.side-categoies a span {
+    float: right;
+} 
+
+.sidebar-links a:hover, .side-categoies a:hover {
+    background: #f4ceff;
+    color: var(--header-background);
+    padding: 3px 5px;
+    border-radius: 4px;
+}
+
+.sidebar h3 {
+    padding-left: 2rem;
+    text-transform: capitalize;
+    font-weight: 600;
+    font-family: "poppins", sans-serif;
+}
+
+
+.posts {
+    padding-left: 14rem;
+}

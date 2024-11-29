@@ -61,3 +61,21 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func DashboardHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("SignupHandler invoked")
+
+	// List all available templates
+	// fmt.Println("Available templates:", templates.Templates())
+
+	data := map[string]interface{}{
+		"Title": "Dashboard - Forum",
+	}
+
+	err := templates.ExecuteTemplate(w, "dashboard", data)
+	if err != nil {
+		fmt.Printf("Error executing signup template: %v\n", err)
+		http.Error(w, "Error rendering template: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
