@@ -19,11 +19,15 @@
         <div class="form-group">
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" required>
+             <!-- Progress Bar for password strength -->
+             <div id="strength-bar" class="strength-bar">
+                <div id="strength-meter" class="strength-meter"></div>
+            </div>
+            <div id="strength-text" class="strength-text">Weak</div>
+            <small class="password-hint">
+                Password must be at least 8 characters long and include uppercase, lowercase, a number, and a special character.
+            </small>
         </div>
-        <!-- <div class="form-group">
-            <label for="confirm-password">Confirm Password:</label>
-            <input type="password" id="confirm-password" name="confirm-password" required>
-        </div> -->
         <button type="submit" class="btn-login">Create account</button>
     </form>
 </section>

@@ -101,12 +101,20 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error rendering template: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
+		return
 	}
 
 	if r.Method == http.MethodPost {
 		email := r.FormValue("email")
 		username := r.FormValue("username")
 		password := r.FormValue("password")
+
+		// Validate password strength
+		err := utils.ValidatePasswordStrength(password)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 
 		hashedPassword, err := utils.HashPassword(password)
 		if err != nil {
