@@ -4,10 +4,14 @@ import (
 	"fmt"
 	"net/http"
 
+	"forum/database"
 	"forum/handlers"
 )
 
 func main() {
+	// initialize database
+	database.InitDB()
+
 	// Serve static files (CSS, JS)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 
@@ -15,7 +19,10 @@ func main() {
 	http.HandleFunc("/", handlers.HomeHandler)
 	http.HandleFunc("/login", handlers.LoginHandler)
 	http.HandleFunc("/signup", handlers.SignUpHandler)
-	http.HandleFunc("/dashboard", handlers.DashboardHandler)
+	http.HandleFunc("/logout", handlers.LogoutHandler)
+	
+	// Wrap the DashboardHandler with AuthMiddleware
+    http.Handle("/dashboard", handlers.AuthMiddleware(http.HandlerFunc(handlers.DashboardHandler)))
 
 	// Start the server
 	fmt.Println("Server starting at port localhost:8080")

@@ -115,6 +115,33 @@ header.header-container {
     color: #e6e6e6; /* Slightly lighter white on hover */
 }
 
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.profile-picture {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logout-button {
+    color: red;
+    text-decoration: none;
+    margin-left: 10px;
+}
+
+/* .logout-button:hover {
+    text-decoration: underline;
+} */
+
+
 
 /* LOGIN */
 

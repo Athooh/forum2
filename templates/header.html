@@ -10,18 +10,28 @@
 </head>
 <body>
     <header class="header-container">
-            <div class="menu">
-                <i class="fa-solid fa-bars"></i>
-                    <a href="/">Forum</a>
-            </div>
-            <div class="search-bar">
-                <input type="text" name="search" id="search-input" placeholder="Search discussions...">
-                <i class="fa-solid fa-magnifying-glass"></i>
-            </div>
-            <div class="authentication">
+        <div class="menu">
+            <!-- <i class="fa-solid fa-bars"></i> -->
+            <a href="/">Forum</a>
+        </div>
+        <div class="search-bar">
+            <input type="text" name="search" id="search-input" placeholder="Search discussions...">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+        <div class="authentication">
+            {{if .IsLoggedIn}}
+                <div class="user-info">
+                    <div class="profile-picture">
+                        <i class="fa-regular fa-user"></i>
+                    </div>
+                    <span>{{.Username}}</span>
+                    <a href="/logout" class="logout-button">Logout</a>
+                </div>
+            {{else}}
                 <a href="/login">Log in</a>
                 <a href="/signup">Sign up</a>
-            </div>    
+            {{end}}
+        </div>
     </header>
 </body>
 </html>
