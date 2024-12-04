@@ -161,10 +161,13 @@ header.header-container {
 .strength-text {
     margin-top: 5px;
     /* font-weight: bold; */
-    color: #888;
+    color: #0b7767;
     font-family: "poppins", sans-serif;
 }
 
+.password-hint {
+    font-size: x-small;
+}
 
 /* .logout-button:hover {
     text-decoration: underline;

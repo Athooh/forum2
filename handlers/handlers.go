@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"text/template"
 	"time"
 
@@ -141,26 +142,66 @@ func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 
 	userID := r.Context().Value("user_id").(int) // Retrieve the logged-in user's ID from the context
 
-    var username string
-    query := `SELECT username FROM users WHERE id = ?`
-    err := database.DB.QueryRow(query, userID).Scan(&username)
-    if err != nil {
-        http.Error(w, "User not found", http.StatusInternalServerError)
-        return
-    }
+	// var username string
+	// query := `SELECT username FROM users WHERE id = ?`
+	// err := database.DB.QueryRow(query, userID).Scan(&username)
+	// if err != nil {
+	//     http.Error(w, "User not found", http.StatusInternalServerError)
+	//     return
+	// }
+	posts, err := database.GetAllPosts("")
+	if err != nil {
+		http.Error(w, "Error retrieving posts", http.StatusInternalServerError)
+		return
+	}
 
-    data := map[string]interface{}{
-        "Title":      "Dashboard - Forum",
-        "IsLoggedIn": true,
-        "Username":   username,
-    }
+	// Retrieve the username for each post's userID
+	for i := range posts {
+		// Query the users table for the username using the userID of each post
+		var username string
+		query := `SELECT username FROM users WHERE id = ?`
+		err := database.DB.QueryRow(query, posts[i].UserID).Scan(&username)
+		if err != nil {
+			// If there's an error retrieving the username, skip adding the username
+			posts[i].Username = "Unknown"
+		} else {
+			posts[i].Username = username
+		}
+	}
 
-    err = templates.ExecuteTemplate(w, "dashboard", data)
-    if err != nil {
-        fmt.Printf("Error executing dashboard template: %v\n", err)
-        http.Error(w, "Error rendering template: "+err.Error(), http.StatusInternalServerError)
-        return
-    }
+	// Retrieve category post counts
+	categoryCounts, err := database.GetCategoryPostCounts()
+	if err != nil {
+		http.Error(w, "Error retrieving category counts", http.StatusInternalServerError)
+		return
+	}
+
+	// Pass the posts and logged-in user's username to the template
+	data := map[string]interface{}{
+		"Title":      "Dashboard - Forum",
+		"IsLoggedIn": true,
+		"Username":   getUsername(userID), // Utility function to fetch username
+		"Posts":      posts,
+		"Categories": categoryCounts, // Make sure categoryCounts is used here
+		"UserID":     userID,
+	}
+
+	err = templates.ExecuteTemplate(w, "dashboard", data)
+	if err != nil {
+		fmt.Printf("Error executing dashboard template: %v\n", err)
+		http.Error(w, "Error rendering template: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func getUsername(userID int) string {
+	var username string
+	query := `SELECT username FROM users WHERE id = ?`
+	err := database.DB.QueryRow(query, userID).Scan(&username)
+	if err != nil {
+		return ""
+	}
+	return username
 }
 
 func AuthMiddleware(next http.Handler) http.Handler {
@@ -206,4 +247,149 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	})
 
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
+}
+
+// CreatePostHandler handles creating new posts
+func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		data := map[string]interface{}{
+			"Title":      "Create Post - Forum",
+			"IsLoggedIn": true,
+		}
+		err := templates.ExecuteTemplate(w, "create-post", data)
+		if err != nil {
+			http.Error(w, "Error rendering template", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if r.Method == http.MethodPost {
+		userID := r.Context().Value("user_id").(int)
+		title := r.FormValue("title")
+		content := r.FormValue("content")
+		category := r.FormValue("category")
+
+		err := database.CreatePost(userID, title, content, category)
+		if err != nil {
+			http.Error(w, "Error creating post", http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+	}
+}
+
+// ListPostsHandler displays all posts
+func ListPostsHandler(w http.ResponseWriter, r *http.Request) {
+	posts, err := database.GetAllPosts("")
+	if err != nil {
+		http.Error(w, "Error retrieving posts", http.StatusInternalServerError)
+		return
+	}
+
+	data := map[string]interface{}{
+		"Title":      "All Posts - Forum",
+		"IsLoggedIn": true,
+		"Posts":      posts,
+	}
+
+	err = templates.ExecuteTemplate(w, "post-list", data)
+	if err != nil {
+		http.Error(w, "Error rendering template", http.StatusInternalServerError)
+	}
+}
+
+// ViewPostHandler displays a specific post
+func ViewPostHandler(w http.ResponseWriter, r *http.Request) {
+	postIDStr := r.URL.Query().Get("id") // Example: /view-post?id=123
+
+	// Convert postID from string to int
+	postID, err := strconv.Atoi(postIDStr)
+	if err != nil {
+		http.Error(w, "Invalid Post ID", http.StatusBadRequest)
+		return
+	}
+
+	post, err := database.GetPost(postID)
+	if err != nil || post == nil {
+		http.Error(w, "Post not found", http.StatusNotFound)
+		return
+	}
+
+	data := map[string]interface{}{
+		"Title":      post.Title + " - Forum",
+		"IsLoggedIn": true,
+		"Post":       post,
+	}
+
+	err = templates.ExecuteTemplate(w, "view-post", data)
+	if err != nil {
+		http.Error(w, "Error rendering template", http.StatusInternalServerError)
+	}
+}
+
+// EditPostHandler handles editing an existing post
+func EditPostHandler(w http.ResponseWriter, r *http.Request) {
+	postIDStr := r.URL.Query().Get("id")
+
+	// Convert postID from string to int
+	postID, err := strconv.Atoi(postIDStr)
+	if err != nil {
+		http.Error(w, "Invalid Post ID", http.StatusBadRequest)
+		return
+	}
+
+	if r.Method == http.MethodGet {
+		post, err := database.GetPost(postID)
+		if err != nil || post == nil {
+			http.Error(w, "Post not found", http.StatusNotFound)
+			return
+		}
+
+		data := map[string]interface{}{
+			"Title":      "Edit Post - Forum",
+			"IsLoggedIn": true,
+			"Post":       post,
+		}
+
+		err = templates.ExecuteTemplate(w, "edit-post", data)
+		if err != nil {
+			http.Error(w, "Error rendering template", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if r.Method == http.MethodPost {
+		title := r.FormValue("title")
+		content := r.FormValue("content")
+		category := r.FormValue("category")
+
+		err := database.UpdatePost(postID, title, content, category)
+		if err != nil {
+			http.Error(w, "Error updating post", http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+	}
+}
+
+// DeletePostHandler handles deleting a post
+func DeletePostHandler(w http.ResponseWriter, r *http.Request) {
+	postIDStr := r.URL.Query().Get("id")
+
+	// Convert postID from string to int
+	postID, err := strconv.Atoi(postIDStr)
+	if err != nil {
+		http.Error(w, "Invalid Post ID", http.StatusBadRequest)
+		return
+	}
+
+	err = database.DeletePost(postID)
+	if err != nil {
+		http.Error(w, "Error deleting post", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 }

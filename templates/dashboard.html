@@ -10,165 +10,50 @@
         </div>
         <h3>Categories</h3>
         <div class="side-categoies">
-            <a href="#"><i class="fa-solid fa-laptop-code"></i>&emsp;Technology<span>145</span></a>
-            <a href="#"><i class="fa-solid fa-wand-magic-sparkles"></i>&emsp;Design<span>189</span></a>
-            <a href="#"><i class="fa-solid fa-money-bill-trend-up"></i>&emsp;Marketing<span>89</span></a>
-            <a href="#"><i class="fa-solid fa-bolt"></i>&emsp;Development<span>678</span></a>
+            {{range $category, $count := .Categories}}
+                <a href="#"><i class="fa-solid fa-laptop-code"></i>&emsp;{{$category}}<span>{{$count}}</span></a>
+            {{end}}
         </div>
     </div>
     <div class="posts">
         <h3>Latest discussions</h3>
         <p>Join the conversation and share your thoughts</p>
-        <div class="post-card">
+
+        {{range .Posts}}
+        <div class="post-card" id="post-{{.ID}}">
             <div class="profile">
-            <div class="avatar">
-                <i class="fa-regular fa-user"></i>
-                <!-- <img src="" alt=""> -->
-                <div class="avatar-name">
-                    <p>Sarah Chen</p>
-                    <p>2h ago</p>
+                <div class="avatar">
+                    <i class="fa-regular fa-user"></i>
+                    <div class="avatar-name">
+                        <p>{{.Username}}</p> <!-- Display Username -->
+                        <p>{{.CreatedAt}}</p>
+                    </div>
+                </div>
+                <div class="category-tag">
+                    <p>{{.Category}}</p>
                 </div>
             </div>
-            <div class="category-tag">
-                <p>Technology</p>
-            </div>
-            </div>
             <div class="post">
-                <h4>The Future of Web Development: What to Expect in 2024</h4>
-                <p>As we move further into 2024, new web development trends are emerging. From AI-powered development tools to advanced frontend frameworks, the landscape is evolving rapidly...</p>
+                <h4>{{.Title}}</h4>
+                <p>{{.Content}}</p>
                 <div class="reaction">
                     <i class="fa-regular fa-thumbs-up"> 42</i>
                     <i class="fa-regular fa-thumbs-down"> 2</i>
                     <i class="fa-regular fa-message"> 12</i>
                     <i class="fa-solid fa-share-nodes"></i>
                 </div>
+                {{if eq .UserID $.UserID}} <!-- Show options only for the post owner -->
+                <div class="post-options">
+                    <button class="edit-post-btn" data-id="{{.ID}}">Edit</button>
+                    <form action="/delete-post?id={{.ID}}" method="POST" style="display: inline;">
+                        <button type="submit" class="delete-post-btn">Delete</button>
+                    </form>
+                </div>
+                {{end}}
             </div>
         </div>
-        <div class="post-card">
-            <div class="profile">
-            <div class="avatar">
-                <i class="fa-regular fa-user"></i>
-                <!-- <img src="" alt=""> -->
-                <div class="avatar-name">
-                    <p>Michael Rodriguez</p>
-                    <p>4h ago</p>
-                </div>
-            </div>
-            <div class="category-tag">
-                <p>Design</p>
-            </div>
-            </div>
-            <div class="post">
-                <h4>Design Systems: Building for Scale</h4>
-                <p>Creating a robust design system is crucial for maintaining consistency across large applications. Here's how we implemented ours...</p>
-                <div class="reaction">
-                    <i class="fa-regular fa-thumbs-up"> 35</i>
-                    <i class="fa-regular fa-thumbs-down"> 8</i>
-                    <i class="fa-regular fa-message"> 1</i>
-                    <i class="fa-solid fa-share-nodes"></i>
-                </div>
-            </div>
-        </div>
-        <div class="post-card">
-            <div class="profile">
-            <div class="avatar">
-                <i class="fa-regular fa-user"></i>
-                <!-- <img src="" alt=""> -->
-                <div class="avatar-name">
-                    <p>Alex Kumar</p>
-                    <p>6h ago</p>
-                </div>
-            </div>
-            <div class="category-tag">
-                <p>Development</p>
-            </div>
-            </div>
-            <div class="post">
-                <h4>Optimizing React Performance: Advanced Techniques</h4>
-                <p>Learn how to leverage React's latest features and optimization techniques to build lightning-fast applications...</p>
-                <div class="reaction">
-                    <i class="fa-regular fa-thumbs-up"> 89</i>
-                    <i class="fa-regular fa-thumbs-down"> 8</i>
-                    <i class="fa-regular fa-message"> 24</i>
-                    <i class="fa-solid fa-share-nodes"></i>
-                </div>
-            </div>
-        </div>
-        <div class="post-card">
-            <div class="profile">
-            <div class="avatar">
-                <i class="fa-regular fa-user"></i>
-                <!-- <img src="" alt=""> -->
-                <div class="avatar-name">
-                    <p>Sarah Chen</p>
-                    <p>2h ago</p>
-                </div>
-            </div>
-            <div class="category-tag">
-                <p>Technology</p>
-            </div>
-            </div>
-            <div class="post">
-                <h4>The Future of Web Development: What to Expect in 2024</h4>
-                <p>As we move further into 2024, new web development trends are emerging. From AI-powered development tools to advanced frontend frameworks, the landscape is evolving rapidly...</p>
-                <div class="reaction">
-                    <i class="fa-regular fa-thumbs-up"> 42</i>
-                    <i class="fa-regular fa-thumbs-down"> 2</i>
-                    <i class="fa-regular fa-message"> 12</i>
-                    <i class="fa-solid fa-share-nodes"></i>
-                </div>
-            </div>
-        </div>
-        <div class="post-card">
-            <div class="profile">
-            <div class="avatar">
-                <i class="fa-regular fa-user"></i>
-                <!-- <img src="" alt=""> -->
-                <div class="avatar-name">
-                    <p>Michael Rodriguez</p>
-                    <p>4h ago</p>
-                </div>
-            </div>
-            <div class="category-tag">
-                <p>Design</p>
-            </div>
-            </div>
-            <div class="post">
-                <h4>Design Systems: Building for Scale</h4>
-                <p>Creating a robust design system is crucial for maintaining consistency across large applications. Here's how we implemented ours...</p>
-                <div class="reaction">
-                    <i class="fa-regular fa-thumbs-up"> 35</i>
-                    <i class="fa-regular fa-thumbs-down"> 8</i>
-                    <i class="fa-regular fa-message"> 1</i>
-                    <i class="fa-solid fa-share-nodes"></i>
-                </div>
-            </div>
-        </div>
-        <div class="post-card">
-            <div class="profile">
-            <div class="avatar">
-                <i class="fa-regular fa-user"></i>
-                <!-- <img src="" alt=""> -->
-                <div class="avatar-name">
-                    <p>Alex Kumar</p>
-                    <p>6h ago</p>
-                </div>
-            </div>
-            <div class="category-tag">
-                <p>Development</p>
-            </div>
-            </div>
-            <div class="post">
-                <h4>Optimizing React Performance: Advanced Techniques</h4>
-                <p>Learn how to leverage React's latest features and optimization techniques to build lightning-fast applications...</p>
-                <div class="reaction">
-                    <i class="fa-regular fa-thumbs-up"> 89</i>
-                    <i class="fa-regular fa-thumbs-down"> 8</i>
-                    <i class="fa-regular fa-message"> 24</i>
-                    <i class="fa-solid fa-share-nodes"></i>
-                </div>
-            </div>
-        </div>
+        {{end}}
     </div>
 </section>
+<script src="/static/js/scripts.js"></script>
 {{end}}
