@@ -1,0 +1,36 @@
+{{define "view-post"}}
+{{template "header" .}}
+<section class="view-post-container">
+    <div class="post-header">
+        <h2>{{.Post.Title}}</h2>
+        <p>By <strong>{{.Post.Username}}</strong> in <strong>{{.Post.Category}}</strong></p>
+        <p>Posted on {{.Post.CreatedAt}}</p>
+    </div>
+    <div class="post-content">
+        <p>{{.Post.Content}}</p>
+    </div>
+    <div class="post-footer">
+        <h3>Comments</h3>
+        <div class="comments">
+            {{if .Comments}}
+                {{range .Comments}}
+                <div class="comment">
+                    <p><strong>{{.Username}}</strong> says:</p>
+                    <p>{{.Content}}</p>
+                    <p class="comment-time">Posted on {{.CreatedAt}}</p>
+                </div>
+                {{end}}
+            {{else}}
+                <p>No comments yet. Be the first to comment!</p>
+            {{end}}
+        </div>
+        <form action="/add-comment?post_id={{.Post.ID}}" method="POST" class="comment-form">
+            <div class="form-group">
+                <label for="comment">Add a Comment:</label>
+                <textarea id="comment" name="comment" placeholder="Write your comment here" required></textarea>
+            </div>
+            <button type="submit" class="btn-submit">Post Comment</button>
+        </form>
+    </div>
+</section>
+{{end}}

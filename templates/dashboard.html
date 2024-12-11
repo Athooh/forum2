@@ -19,6 +19,19 @@
         <h3>Latest discussions</h3>
         <p>Join the conversation and share your thoughts</p>
 
+        <!-- Flash Message -->
+        {{if .FlashMessage}}
+        <div class="flash-message">
+            {{.FlashMessage}}
+        </div>
+        {{end}}
+
+        <!-- Create Post Button -->
+        <div class="create-post">
+            <a href="/create-post" class="btn-create-post">Create New Post</a>
+        </div>
+
+        <!-- Posts List -->
         {{range .Posts}}
         <div class="post-card" id="post-{{.ID}}">
             <div class="profile">
@@ -34,7 +47,7 @@
                 </div>
             </div>
             <div class="post">
-                <h4>{{.Title}}</h4>
+                <h4><a href="/view-post?id={{.ID}}">{{.Title}}</a></h4> <!-- Link to view post -->
                 <p>{{.Content}}</p>
                 <div class="reaction">
                     <i class="fa-regular fa-thumbs-up"> 42</i>
@@ -44,9 +57,9 @@
                 </div>
                 {{if eq .UserID $.UserID}} <!-- Show options only for the post owner -->
                 <div class="post-options">
-                    <button class="edit-post-btn" data-id="{{.ID}}">Edit</button>
+                    <a href="/edit-post?id={{.ID}}" class="btn-edit">Edit</a>
                     <form action="/delete-post?id={{.ID}}" method="POST" style="display: inline;">
-                        <button type="submit" class="delete-post-btn">Delete</button>
+                        <button type="submit" class="btn-delete">Delete</button>
                     </form>
                 </div>
                 {{end}}

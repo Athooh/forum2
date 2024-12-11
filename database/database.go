@@ -19,6 +19,15 @@ type Post struct {
 	Username  string // Add this field to store the post author's username
 }
 
+type Comment struct {
+	ID        int
+	PostID    int
+	UserID    int
+	Content   string
+	CreatedAt time.Time
+	Username  string // Add this field to store the comment author's username
+}
+
 var DB *sql.DB
 
 func InitDB() {
@@ -73,6 +82,56 @@ func createTables() {
 	if err != nil {
 		log.Fatalf("Failed to create posts table: %v\n", err)
 	}
+
+	commentTable := `
+    CREATE TABLE IF NOT EXISTS comments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        post_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        content TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (post_id) REFERENCES posts (id),
+        FOREIGN KEY (user_id) REFERENCES users (id)
+    );`
+	_, tableErr := DB.Exec(commentTable)
+	if tableErr != nil {
+		log.Fatalf("Failed to create comments table: %v\n", tableErr)
+	}
+}
+
+// AddComment inserts a new comment into the database.
+func AddComment(postID, userID int, content string) error {
+	query := `INSERT INTO comments (post_id, user_id, content) VALUES (?, ?, ?)`
+	_, err := DB.Exec(query, postID, userID, content)
+	return err
+}
+
+// GetCommentsByPostID retrieves all comments for a specific post ID.
+func GetCommentsByPostID(postID int) ([]Comment, error) {
+	query := `
+    SELECT c.id, c.post_id, c.user_id, c.content, c.created_at, u.username
+    FROM comments c
+    INNER JOIN users u ON c.user_id = u.id
+    WHERE c.post_id = ?
+    ORDER BY c.created_at ASC`
+
+	rows, err := DB.Query(query, postID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var comments []Comment
+	for rows.Next() {
+		var comment Comment
+		err := rows.Scan(&comment.ID, &comment.PostID, &comment.UserID, &comment.Content, &comment.CreatedAt, &comment.Username)
+		if err != nil {
+			return nil, err
+		}
+		comments = append(comments, comment)
+	}
+
+	return comments, nil
 }
 
 // CreatePost inserts a new post into the database.
@@ -169,4 +228,3 @@ func GetCategoryPostCounts() (map[string]int, error) {
 
 	return categoryCounts, nil
 }
-

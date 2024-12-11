@@ -300,6 +300,7 @@ func ListPostsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // ViewPostHandler displays a specific post
+// ViewPostHandler displays a specific post
 func ViewPostHandler(w http.ResponseWriter, r *http.Request) {
 	postIDStr := r.URL.Query().Get("id") // Example: /view-post?id=123
 
@@ -316,10 +317,17 @@ func ViewPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	comments, err := database.GetCommentsByPostID(postID)
+	if err != nil {
+		http.Error(w, "Error retrieving comments", http.StatusInternalServerError)
+		return
+	}
+
 	data := map[string]interface{}{
 		"Title":      post.Title + " - Forum",
 		"IsLoggedIn": true,
 		"Post":       post,
+		"Comments":   comments,
 	}
 
 	err = templates.ExecuteTemplate(w, "view-post", data)
@@ -346,19 +354,29 @@ func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Debugging: Log the retrieved post
+		fmt.Printf("Post data: %+v\n", post)
+
 		data := map[string]interface{}{
 			"Title":      "Edit Post - Forum",
 			"IsLoggedIn": true,
 			"Post":       post,
 		}
 
+
+		// Debugging: Log the template data
+		fmt.Printf("Template data: %+v\n", data)
+
 		err = templates.ExecuteTemplate(w, "edit-post", data)
 		if err != nil {
+			fmt.Printf("Error executing edit-post template: %v\n", err)
 			http.Error(w, "Error rendering template", http.StatusInternalServerError)
 		}
 		return
 	}
 
+
+	// Handle post updates (if using POST)
 	if r.Method == http.MethodPost {
 		title := r.FormValue("title")
 		content := r.FormValue("content")
