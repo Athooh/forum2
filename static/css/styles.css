@@ -311,6 +311,7 @@ header.header-container {
     padding-bottom: 3rem; /* Add space inside the container for the last card */
 }
 
+
 .posts::-webkit-scrollbar {
     margin-left: 20px;
     display: none;
@@ -327,6 +328,10 @@ header.header-container {
     font-weight: 550;
     margin: 0;
     text-transform: capitalize;
+}
+
+.post-footer h3 {
+    font-size: 1rem;
 }
 
 .posts p:first-of-type {
@@ -466,3 +471,4 @@ header.header-container {
 .post-options {
     margin-top: 10px;
 }
+
