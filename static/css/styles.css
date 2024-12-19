@@ -432,7 +432,7 @@ header.header-container {
     background-color: #45a049;
 }
 
-.btn-edit {
+.post-options .btn-edit {
     /* display: inline-block; */
     margin-right: 5px;
     background-color: #007bff;
@@ -440,10 +440,10 @@ header.header-container {
     text-decoration: none;
     border-radius: 4px;
     font-size: .9rem;
-    padding: 5px 10px;
+    padding: 4px 10px;
 }
 
-.form-group .btn-edit:hover {
+.btn-edit:hover {
     background-color: #0056b3;
 }
 
