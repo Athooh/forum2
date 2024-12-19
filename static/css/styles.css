@@ -433,21 +433,23 @@ header.header-container {
 }
 
 .btn-edit {
-    display: inline-block;
-    padding: 5px 10px;
+    /* display: inline-block; */
     margin-right: 5px;
     background-color: #007bff;
     color: white;
     text-decoration: none;
     border-radius: 4px;
+    font-size: .9rem;
+    padding: 5px 10px;
 }
 
-.btn-edit:hover {
+.form-group .btn-edit:hover {
     background-color: #0056b3;
 }
 
-.btn-delete {
+.post-options .btn-delete {
     display: inline-block;
+    font-size: .9rem;
     padding: 5px 10px;
     background-color: #f44336;
     color: white;
@@ -472,3 +474,52 @@ header.header-container {
     margin-top: 10px;
 }
 
+/* Edit Post */
+
+.posts .form-group {
+    display: flex;
+    /* align-items: center; */
+    flex-direction: column;
+    width: 70%;
+    font-family: 'poppins', sans-serif;
+    margin-block: 30px;
+}
+
+
+.posts label {
+    align-items: start;
+    color: #6c757d;
+} 
+
+.form-group input {
+    width: 95%;
+    /* margin: auto; */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.form-group textarea {
+    width: 95%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    min-height: 100px;
+}
+
+.form-group #title, .form-group #content, .form-group #category {
+    color: #6c757d;
+}
+
+.form-group #title {
+    text-transform: capitalize;
+}
+
+button .btn-submit {
+    padding: 15px 10px;
+}
+
+/* a.btn-edit, button.btn-delete {
+    font-size: .9rem;
+    padding: 10px 15px;
+} */
