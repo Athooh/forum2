@@ -2,9 +2,10 @@ package utils
 
 import (
 	"errors"
-	"unicode"
-	"time"
 	"fmt"
+	"strings"
+	"time"
+	"unicode"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -70,7 +71,6 @@ func ValidatePasswordStrength(password string) error {
 	return nil
 }
 
-
 // TimeAgo converts a timestamp into a human-readable string like "5 mins ago"
 func TimeAgo(t time.Time) string {
 	duration := time.Since(t)
@@ -101,4 +101,13 @@ func TimeAgo(t time.Time) string {
 		years := int(duration.Hours() / (24 * 365))
 		return fmt.Sprintf("%d years ago", years)
 	}
+}
+
+// Utility function to truncate content
+func TruncateContent(content string, wordLimit int) string {
+	words := strings.Fields(content)
+	if len(words) > wordLimit {
+		return strings.Join(words[:wordLimit], " ") + "..."
+	}
+	return content
 }
