@@ -411,3 +411,51 @@ func DeletePostHandler(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 }
+
+// LikePostHandler handles liking a post.
+func LikePostHandler(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value("user_id").(int)
+	postIDStr := r.URL.Query().Get("id")
+
+	postID, err := strconv.Atoi(postIDStr)
+	if err != nil {
+		http.Error(w, "Invalid Post ID", http.StatusBadRequest)
+		return
+	}
+
+	err = database.AddReaction(userID, postID, "like")
+	if err != nil {
+		http.Error(w, "Failed to like post", http.StatusInternalServerError)
+		return
+	}
+
+	// Return updated reaction counts
+	likes, dislikes, _ := database.GetReactionCounts(postID)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(fmt.Sprintf(`{"likes": %d, "dislikes": %d}`, likes, dislikes)))
+}
+
+// DislikePostHandler handles disliking a post.
+func DislikePostHandler(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value("user_id").(int)
+	postIDStr := r.URL.Query().Get("id")
+
+	postID, err := strconv.Atoi(postIDStr)
+	if err != nil {
+		http.Error(w, "Invalid Post ID", http.StatusBadRequest)
+		return
+	}
+
+	err = database.AddReaction(userID, postID, "dislike")
+	if err != nil {
+		http.Error(w, "Failed to dislike post", http.StatusInternalServerError)
+		return
+	}
+
+	// Return updated reaction counts
+	likes, dislikes, _ := database.GetReactionCounts(postID)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(fmt.Sprintf(`{"likes": %d, "dislikes": %d}`, likes, dislikes)))
+}

@@ -50,11 +50,12 @@
                 <h4><a href="/view-post?id={{.ID}}">{{.Title}}</a></h4> <!-- Link to view post -->
                 <p>{{.Content}}</p>
                 <div class="reaction">
-                    <i class="fa-regular fa-thumbs-up"> 42</i>
-                    <i class="fa-regular fa-thumbs-down"> 2</i>
+                    <i class="btn-like" data-id="{{.ID}}"><i class="fa-regular fa-thumbs-up"></i> <span>{{.Likes}}</span></i>
+                    <i class="btn-dislike" data-id="{{.ID}}"><i class="fa-regular fa-thumbs-down"></i> <span>{{.Dislikes}}</span></i>
                     <i class="fa-regular fa-message"> 12</i>
                     <i class="fa-solid fa-share-nodes"></i>
                 </div>
+                
                 {{if eq .UserID $.UserID}} <!-- Show options only for the post owner -->
                 <div class="post-options">
                     <a href="/edit-post?id={{.ID}}" class="btn-edit">Edit</a>
@@ -68,5 +69,5 @@
         {{end}}
     </div>
 </section>
-<script src="/static/js/scripts.js"></script>
+<script src="/static/js/dashboard.js"></script>
 {{end}}

@@ -407,7 +407,7 @@ header.header-container {
 
 .reaction i{
     color: var(--muted-text);
-    padding-right: 1rem;
+    padding-right: .2rem;
     font-size: .8rem;
 }
 
@@ -515,11 +515,14 @@ header.header-container {
     text-transform: capitalize;
 }
 
-button .btn-submit {
-    padding: 15px 10px;
+button.btn-submit {
+    padding: 10px;
+    background-color: #45a049;
+    color: #fff;
+    border-radius: 20px;
+    border: none;
 }
 
-/* a.btn-edit, button.btn-delete {
-    font-size: .9rem;
-    padding: 10px 15px;
-} */
+button.btn-submit:hover {
+    background-color: #4caf50;
+}
