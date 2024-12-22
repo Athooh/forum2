@@ -251,32 +251,40 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 
 // CreatePostHandler handles creating new posts
 func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodGet {
-		data := map[string]interface{}{
-			"Title":      "Create Post - Forum",
-			"IsLoggedIn": true,
-		}
-		err := templates.ExecuteTemplate(w, "create-post", data)
-		if err != nil {
-			http.Error(w, "Error rendering template", http.StatusInternalServerError)
-		}
-		return
-	}
+    if r.Method == http.MethodGet {
+        categories, err := database.GetCategories()
+        if err != nil {
+            http.Error(w, "Failed to load categories", http.StatusInternalServerError)
+            return
+        }
 
-	if r.Method == http.MethodPost {
-		userID := r.Context().Value("user_id").(int)
-		title := r.FormValue("title")
-		content := r.FormValue("content")
-		category := r.FormValue("category")
+        data := map[string]interface{}{
+            "Title":      "Create Post - Forum",
+            "IsLoggedIn": true,
+            "Categories": categories,
+        }
 
-		err := database.CreatePost(userID, title, content, category)
-		if err != nil {
-			http.Error(w, "Error creating post", http.StatusInternalServerError)
-			return
-		}
+        err = templates.ExecuteTemplate(w, "create-post", data)
+        if err != nil {
+            http.Error(w, "Error rendering template", http.StatusInternalServerError)
+        }
+        return
+    }
 
-		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
-	}
+    if r.Method == http.MethodPost {
+        userID := r.Context().Value("user_id").(int)
+        title := r.FormValue("title")
+        content := r.FormValue("content")
+        category := r.FormValue("category")
+
+        err := database.CreatePost(userID, title, content, category)
+        if err != nil {
+            http.Error(w, "Error creating post", http.StatusInternalServerError)
+            return
+        }
+
+        http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+    }
 }
 
 // ListPostsHandler displays all posts
@@ -353,6 +361,12 @@ func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		categories, err := database.GetCategories()
+        if err != nil {
+            http.Error(w, "Failed to load categories", http.StatusInternalServerError)
+            return
+        }
+
 		// Debugging: Log the retrieved post
 		fmt.Printf("Post data: %+v\n", post)
 
@@ -360,6 +374,7 @@ func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 			"Title":      "Edit Post - Forum",
 			"IsLoggedIn": true,
 			"Post":       post,
+			"Categories": categories,
 		}
 
 		// Debugging: Log the template data

@@ -511,6 +511,14 @@ header.header-container {
     color: #6c757d;
 }
 
+#category {
+    width: 97%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+}
+
 .form-group #title {
     text-transform: capitalize;
 }
@@ -525,4 +533,50 @@ button.btn-submit {
 
 button.btn-submit:hover {
     background-color: #4caf50;
+}
+
+/* xxx */
+.post {
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    transition: box-shadow 0.3s ease;
+}
+
+.post:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.post h4 a {
+    font-size: 1.2em;
+    color: #333;
+    text-decoration: none;
+}
+
+.post h4 a:hover {
+    text-decoration: underline;
+}
+
+.post p {
+    font-size: 0.95em;
+    color: #555;
+    margin: 10px 0;
+    line-height: 1.4;
+}
+
+.post .reaction {
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #777;
+}
+
+.post .reaction i {
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.post-content p {
+    max-width: 900px;
 }

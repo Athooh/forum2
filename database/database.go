@@ -2,35 +2,36 @@ package database
 
 import (
 	"database/sql"
+	"forum/utils"
 	"log"
 	"time"
-	"forum/utils"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 type Post struct {
-	ID            int
-	UserID        int
-	Title         string
-	Content       string
-	Category      string
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	Username      string // Add this field to store the post author's username
-	Likes         int    // Number of likes
-	Dislikes      int    // Number of dislikes
-	CommentsCount int    // New field to store comment count
+	ID             int
+	UserID         int
+	Title          string
+	Content        string
+	Preview        string // Truncated content for preview
+	Category       string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	Username       string // Add this field to store the post author's username
+	Likes          int    // Number of likes
+	Dislikes       int    // Number of dislikes
+	CommentsCount  int    // New field to store comment count
 	CreatedAtHuman string // Human-readable time difference
 }
 
 type Comment struct {
-	ID        int
-	PostID    int
-	UserID    int
-	Content   string
-	CreatedAt time.Time
-	Username  string // Add this field to store the comment author's username
+	ID             int
+	PostID         int
+	UserID         int
+	Content        string
+	CreatedAt      time.Time
+	Username       string // Add this field to store the comment author's username
 	CreatedAtHuman string // Human-readable time difference
 }
 
@@ -101,6 +102,34 @@ func createTables() {
 	_, tableErr := DB.Exec(commentTable)
 	if tableErr != nil {
 		log.Fatalf("Failed to create comments table: %v\n", tableErr)
+	}
+
+	categoryTable := `
+    CREATE TABLE IF NOT EXISTS categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT UNIQUE NOT NULL
+    );`
+	_, err = DB.Exec(categoryTable)
+	if err != nil {
+		log.Fatalf("Failed to create categories table: %v\n", err)
+	}
+
+	// Insert predefined categories
+	categorySeed := `
+    INSERT OR IGNORE INTO categories (name) VALUES 
+    ('Technology'),
+    ('Design'),
+    ('Marketing'),
+    ('Development'),
+    ('Science'),
+    ('Health'),
+    ('Education'),
+    ('Business'),
+    ('Lifestyle'),
+    ('Entertainment');`
+	_, err = DB.Exec(categorySeed)
+	if err != nil {
+		log.Fatalf("Failed to seed categories: %v\n", err)
 	}
 
 	reactionTable := `
@@ -265,10 +294,10 @@ func GetAllPosts(category string) ([]Post, error) {
 		if err != nil {
 			return nil, err
 		}
-		post.CreatedAtHuman = utils.TimeAgo(post.CreatedAt) // Populate human-readable time
+		post.Preview = utils.TruncateContent(post.Content, 30) // Limit to 30 words
+		post.CreatedAtHuman = utils.TimeAgo(post.CreatedAt)    // Populate human-readable time
 		posts = append(posts, post)
 	}
-
 	return posts, nil
 }
 
@@ -312,6 +341,27 @@ func GetCategoryPostCounts() (map[string]int, error) {
 	return categoryCounts, nil
 }
 
+// GetCategories retrieves all categories from the database.
+func GetCategories() ([]string, error) {
+    query := `SELECT name FROM categories ORDER BY name ASC`
+    rows, err := DB.Query(query)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    var categories []string
+    for rows.Next() {
+        var name string
+        if err := rows.Scan(&name); err != nil {
+            return nil, err
+        }
+        categories = append(categories, name)
+    }
+    return categories, nil
+}
+
+
 // AddReaction adds a like or dislike reaction to a post.
 func AddReaction(userID, postID int, reaction string) error {
 	query := `
@@ -340,4 +390,3 @@ func GetReactionCounts(postID int) (int, int, error) {
 
 	return likes, dislikes, nil
 }
-
