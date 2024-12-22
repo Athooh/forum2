@@ -3,6 +3,8 @@ package utils
 import (
 	"errors"
 	"unicode"
+	"time"
+	"fmt"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -66,4 +68,37 @@ func ValidatePasswordStrength(password string) error {
 	}
 
 	return nil
+}
+
+
+// TimeAgo converts a timestamp into a human-readable string like "5 mins ago"
+func TimeAgo(t time.Time) string {
+	duration := time.Since(t)
+
+	switch {
+	case duration < time.Minute:
+		seconds := int(duration.Seconds())
+		if seconds <= 1 {
+			return "just now"
+		}
+		return fmt.Sprintf("%d secs ago", seconds)
+	case duration < time.Hour:
+		minutes := int(duration.Minutes())
+		return fmt.Sprintf("%d mins ago", minutes)
+	case duration < 24*time.Hour:
+		hours := int(duration.Hours())
+		return fmt.Sprintf("%d hrs ago", hours)
+	case duration < 7*24*time.Hour:
+		days := int(duration.Hours() / 24)
+		return fmt.Sprintf("%d days ago", days)
+	case duration < 30*24*time.Hour:
+		weeks := int(duration.Hours() / (24 * 7))
+		return fmt.Sprintf("%d weeks ago", weeks)
+	case duration < 365*24*time.Hour:
+		months := int(duration.Hours() / (24 * 30))
+		return fmt.Sprintf("%d months ago", months)
+	default:
+		years := int(duration.Hours() / (24 * 365))
+		return fmt.Sprintf("%d years ago", years)
+	}
 }
