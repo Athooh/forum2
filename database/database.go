@@ -17,6 +17,8 @@ type Post struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Username  string // Add this field to store the post author's username
+	Likes     int    // Number of likes
+	Dislikes  int    // Number of dislikes
 }
 
 type Comment struct {
@@ -97,6 +99,23 @@ func createTables() {
 	if tableErr != nil {
 		log.Fatalf("Failed to create comments table: %v\n", tableErr)
 	}
+
+	reactionTable := `
+	CREATE TABLE IF NOT EXISTS post_reactions (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		user_id INTEGER NOT NULL,
+		post_id INTEGER NOT NULL,
+		reaction TEXT CHECK(reaction IN ('like', 'dislike')) NOT NULL,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		FOREIGN KEY (user_id) REFERENCES users (id),
+		FOREIGN KEY (post_id) REFERENCES posts (id),
+		UNIQUE(user_id, post_id)
+	);`
+	_, err = DB.Exec(reactionTable)
+	if err != nil {
+		log.Fatalf("Failed to create post_reactions table: %v\n", err)
+	}
+
 }
 
 // AddComment inserts a new comment into the database.
@@ -158,16 +177,51 @@ func GetPost(postID int) (*Post, error) {
 	return &post, nil
 }
 
-// GetAllPosts retrieves all posts with optional filtering by category.
+// GetAllPosts retrieves all posts with optional filtering by category, including like and dislike counts.
 func GetAllPosts(category string) ([]Post, error) {
 	var rows *sql.Rows
 	var err error
 
 	if category != "" {
-		query := `SELECT id, user_id, title, content, category, created_at, updated_at FROM posts WHERE category = ? ORDER BY created_at DESC`
+		query := `
+		SELECT p.id, p.user_id, p.title, p.content, p.category, p.created_at, p.updated_at,
+		       IFNULL(likes.count, 0) AS likes, IFNULL(dislikes.count, 0) AS dislikes
+		FROM posts p
+		LEFT JOIN (
+			SELECT post_id, COUNT(*) AS count
+			FROM post_reactions
+			WHERE reaction = 'like'
+			GROUP BY post_id
+		) AS likes ON p.id = likes.post_id
+		LEFT JOIN (
+			SELECT post_id, COUNT(*) AS count
+			FROM post_reactions
+			WHERE reaction = 'dislike'
+			GROUP BY post_id
+		) AS dislikes ON p.id = dislikes.post_id
+		WHERE p.category = ?
+		ORDER BY p.created_at DESC`
+
 		rows, err = DB.Query(query, category)
 	} else {
-		query := `SELECT id, user_id, title, content, category, created_at, updated_at FROM posts ORDER BY created_at DESC`
+		query := `
+		SELECT p.id, p.user_id, p.title, p.content, p.category, p.created_at, p.updated_at,
+		       IFNULL(likes.count, 0) AS likes, IFNULL(dislikes.count, 0) AS dislikes
+		FROM posts p
+		LEFT JOIN (
+			SELECT post_id, COUNT(*) AS count
+			FROM post_reactions
+			WHERE reaction = 'like'
+			GROUP BY post_id
+		) AS likes ON p.id = likes.post_id
+		LEFT JOIN (
+			SELECT post_id, COUNT(*) AS count
+			FROM post_reactions
+			WHERE reaction = 'dislike'
+			GROUP BY post_id
+		) AS dislikes ON p.id = dislikes.post_id
+		ORDER BY p.created_at DESC`
+
 		rows, err = DB.Query(query)
 	}
 
@@ -179,7 +233,17 @@ func GetAllPosts(category string) ([]Post, error) {
 	var posts []Post
 	for rows.Next() {
 		var post Post
-		err := rows.Scan(&post.ID, &post.UserID, &post.Title, &post.Content, &post.Category, &post.CreatedAt, &post.UpdatedAt)
+		err := rows.Scan(
+			&post.ID,
+			&post.UserID,
+			&post.Title,
+			&post.Content,
+			&post.Category,
+			&post.CreatedAt,
+			&post.UpdatedAt,
+			&post.Likes,
+			&post.Dislikes,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -188,6 +252,7 @@ func GetAllPosts(category string) ([]Post, error) {
 
 	return posts, nil
 }
+
 
 // UpdatePost updates an existing post.
 func UpdatePost(postID int, title, content, category string) error {
@@ -227,4 +292,33 @@ func GetCategoryPostCounts() (map[string]int, error) {
 	}
 
 	return categoryCounts, nil
+}
+
+// AddReaction adds a like or dislike reaction to a post.
+func AddReaction(userID, postID int, reaction string) error {
+	query := `
+	INSERT INTO post_reactions (user_id, post_id, reaction)
+	VALUES (?, ?, ?)
+	ON CONFLICT(user_id, post_id) DO UPDATE SET reaction = excluded.reaction;`
+	_, err := DB.Exec(query, userID, postID, reaction)
+	return err
+}
+
+// GetReactionCounts returns the number of likes and dislikes for a post.
+func GetReactionCounts(postID int) (int, int, error) {
+	var likes, dislikes int
+
+	likeQuery := `SELECT COUNT(*) FROM post_reactions WHERE post_id = ? AND reaction = 'like'`
+	err := DB.QueryRow(likeQuery, postID).Scan(&likes)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	dislikeQuery := `SELECT COUNT(*) FROM post_reactions WHERE post_id = ? AND reaction = 'dislike'`
+	err = DB.QueryRow(dislikeQuery, postID).Scan(&dislikes)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return likes, dislikes, nil
 }
