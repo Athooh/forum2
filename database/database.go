@@ -4,21 +4,24 @@ import (
 	"database/sql"
 	"log"
 	"time"
+	"forum/utils"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 type Post struct {
-	ID        int
-	UserID    int
-	Title     string
-	Content   string
-	Category  string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Username  string // Add this field to store the post author's username
-	Likes     int    // Number of likes
-	Dislikes  int    // Number of dislikes
+	ID            int
+	UserID        int
+	Title         string
+	Content       string
+	Category      string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	Username      string // Add this field to store the post author's username
+	Likes         int    // Number of likes
+	Dislikes      int    // Number of dislikes
+	CommentsCount int    // New field to store comment count
+	CreatedAtHuman string // Human-readable time difference
 }
 
 type Comment struct {
@@ -28,6 +31,7 @@ type Comment struct {
 	Content   string
 	CreatedAt time.Time
 	Username  string // Add this field to store the comment author's username
+	CreatedAtHuman string // Human-readable time difference
 }
 
 var DB *sql.DB
@@ -38,7 +42,6 @@ func InitDB() {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v\n", err)
 	}
-
 	createTables()
 }
 
@@ -147,9 +150,9 @@ func GetCommentsByPostID(postID int) ([]Comment, error) {
 		if err != nil {
 			return nil, err
 		}
+		comment.CreatedAtHuman = utils.TimeAgo(comment.CreatedAt) // Populate human-readable time
 		comments = append(comments, comment)
 	}
-
 	return comments, nil
 }
 
@@ -173,11 +176,11 @@ func GetPost(postID int) (*Post, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	post.CreatedAtHuman = utils.TimeAgo(post.CreatedAt)
 	return &post, nil
 }
 
-// GetAllPosts retrieves all posts with optional filtering by category, including like and dislike counts.
+// GetAllPosts retrieves all posts with optional filtering by category, including like, dislike, and comment counts.
 func GetAllPosts(category string) ([]Post, error) {
 	var rows *sql.Rows
 	var err error
@@ -185,7 +188,9 @@ func GetAllPosts(category string) ([]Post, error) {
 	if category != "" {
 		query := `
 		SELECT p.id, p.user_id, p.title, p.content, p.category, p.created_at, p.updated_at,
-		       IFNULL(likes.count, 0) AS likes, IFNULL(dislikes.count, 0) AS dislikes
+		       IFNULL(likes.count, 0) AS likes, 
+		       IFNULL(dislikes.count, 0) AS dislikes,
+		       IFNULL(comments.count, 0) AS comments_count
 		FROM posts p
 		LEFT JOIN (
 			SELECT post_id, COUNT(*) AS count
@@ -199,6 +204,11 @@ func GetAllPosts(category string) ([]Post, error) {
 			WHERE reaction = 'dislike'
 			GROUP BY post_id
 		) AS dislikes ON p.id = dislikes.post_id
+		LEFT JOIN (
+			SELECT post_id, COUNT(*) AS count
+			FROM comments
+			GROUP BY post_id
+		) AS comments ON p.id = comments.post_id
 		WHERE p.category = ?
 		ORDER BY p.created_at DESC`
 
@@ -206,7 +216,9 @@ func GetAllPosts(category string) ([]Post, error) {
 	} else {
 		query := `
 		SELECT p.id, p.user_id, p.title, p.content, p.category, p.created_at, p.updated_at,
-		       IFNULL(likes.count, 0) AS likes, IFNULL(dislikes.count, 0) AS dislikes
+		       IFNULL(likes.count, 0) AS likes, 
+		       IFNULL(dislikes.count, 0) AS dislikes,
+		       IFNULL(comments.count, 0) AS comments_count
 		FROM posts p
 		LEFT JOIN (
 			SELECT post_id, COUNT(*) AS count
@@ -220,6 +232,11 @@ func GetAllPosts(category string) ([]Post, error) {
 			WHERE reaction = 'dislike'
 			GROUP BY post_id
 		) AS dislikes ON p.id = dislikes.post_id
+		LEFT JOIN (
+			SELECT post_id, COUNT(*) AS count
+			FROM comments
+			GROUP BY post_id
+		) AS comments ON p.id = comments.post_id
 		ORDER BY p.created_at DESC`
 
 		rows, err = DB.Query(query)
@@ -243,16 +260,17 @@ func GetAllPosts(category string) ([]Post, error) {
 			&post.UpdatedAt,
 			&post.Likes,
 			&post.Dislikes,
+			&post.CommentsCount, // Add the new field for comments count
 		)
 		if err != nil {
 			return nil, err
 		}
+		post.CreatedAtHuman = utils.TimeAgo(post.CreatedAt) // Populate human-readable time
 		posts = append(posts, post)
 	}
 
 	return posts, nil
 }
-
 
 // UpdatePost updates an existing post.
 func UpdatePost(postID int, title, content, category string) error {
@@ -322,3 +340,4 @@ func GetReactionCounts(postID int) (int, int, error) {
 
 	return likes, dislikes, nil
 }
+

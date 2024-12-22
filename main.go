@@ -30,6 +30,7 @@ func main() {
 	http.Handle("/delete-post", handlers.AuthMiddleware(http.HandlerFunc(handlers.DeletePostHandler)))
 	http.Handle("/like-post", handlers.AuthMiddleware(http.HandlerFunc(handlers.LikePostHandler)))
 	http.Handle("/dislike-post", handlers.AuthMiddleware(http.HandlerFunc(handlers.DislikePostHandler)))
+	http.Handle("/add-comment", handlers.AuthMiddleware(http.HandlerFunc(handlers.AddCommentHandler)))
 
 	// Start the server
 	fmt.Println("Server starting at port localhost:8080")

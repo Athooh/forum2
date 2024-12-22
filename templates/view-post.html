@@ -19,7 +19,7 @@
         <div class="post-header">
             <h3>{{.Post.Title}}</h3>
             <p>By <strong>{{.Post.Username}}</strong> in <strong>{{.Post.Category}}</strong></p>
-            <p>Posted on {{.Post.CreatedAt}}</p>
+            <p>Posted on {{.Post.CreatedAtHuman}}</p>
         </div>
         <div class="post-content">
             <p>{{.Post.Content}}</p>
@@ -32,7 +32,7 @@
                     <div class="comment">
                         <p><strong>{{.Username}}</strong> says:</p>
                         <p>{{.Content}}</p>
-                        <p class="comment-time">Posted on {{.CreatedAt}}</p>
+                        <p class="comment-time">Posted on {{.CreatedAtHuman}}</p>
                     </div>
                     {{end}}
                 {{else}}

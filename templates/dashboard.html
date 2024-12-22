@@ -39,7 +39,7 @@
                     <i class="fa-regular fa-user"></i>
                     <div class="avatar-name">
                         <p>{{.Username}}</p> <!-- Display Username -->
-                        <p>{{.CreatedAt}}</p>
+                        <p>{{.CreatedAtHuman}}</p>
                     </div>
                 </div>
                 <div class="category-tag">
@@ -52,7 +52,7 @@
                 <div class="reaction">
                     <i class="btn-like" data-id="{{.ID}}"><i class="fa-regular fa-thumbs-up"></i> <span>{{.Likes}}</span></i>
                     <i class="btn-dislike" data-id="{{.ID}}"><i class="fa-regular fa-thumbs-down"></i> <span>{{.Dislikes}}</span></i>
-                    <i class="fa-regular fa-message"> 12</i>
+                    <i class="fa-regular fa-message"> {{.CommentsCount}}</i>
                     <i class="fa-solid fa-share-nodes"></i>
                 </div>
                 

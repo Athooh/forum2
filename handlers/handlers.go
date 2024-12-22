@@ -300,7 +300,6 @@ func ListPostsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // ViewPostHandler displays a specific post
-// ViewPostHandler displays a specific post
 func ViewPostHandler(w http.ResponseWriter, r *http.Request) {
 	postIDStr := r.URL.Query().Get("id") // Example: /view-post?id=123
 
@@ -363,7 +362,6 @@ func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 			"Post":       post,
 		}
 
-
 		// Debugging: Log the template data
 		fmt.Printf("Template data: %+v\n", data)
 
@@ -374,7 +372,6 @@ func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
 
 	// Handle post updates (if using POST)
 	if r.Method == http.MethodPost {
@@ -458,4 +455,35 @@ func DislikePostHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(fmt.Sprintf(`{"likes": %d, "dislikes": %d}`, likes, dislikes)))
+}
+
+// AddCommentHandler handles adding a comment to a post.
+func AddCommentHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userID := r.Context().Value("user_id").(int)
+	postIDStr := r.URL.Query().Get("post_id")
+	content := r.FormValue("comment")
+
+	postID, err := strconv.Atoi(postIDStr)
+	if err != nil {
+		http.Error(w, "Invalid Post ID", http.StatusBadRequest)
+		return
+	}
+
+	if content == "" {
+		http.Error(w, "Comment content cannot be empty", http.StatusBadRequest)
+		return
+	}
+
+	err = database.AddComment(postID, userID, content)
+	if err != nil {
+		http.Error(w, "Failed to add comment", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/view-post?id=%d", postID), http.StatusSeeOther)
 }
