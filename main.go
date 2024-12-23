@@ -14,6 +14,8 @@ func main() {
 
 	// Serve static files (CSS, JS)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
+	// handles uploaded files
+	http.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
 
 	// Define explicit routes
 	http.HandleFunc("/", handlers.HomeHandler)

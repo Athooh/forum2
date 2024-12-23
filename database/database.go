@@ -23,6 +23,7 @@ type Post struct {
 	Dislikes       int    // Number of dislikes
 	CommentsCount  int    // New field to store comment count
 	CreatedAtHuman string // Human-readable time difference
+	ImageURL       string // New field to store the image URL
 }
 
 type Comment struct {
@@ -73,13 +74,17 @@ func createTables() {
 		log.Fatalf("Failed to create sessions table: %v\n", err)
 	}
 
+	
+
 	postTable := `
+	
     CREATE TABLE IF NOT EXISTS posts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
         title TEXT NOT NULL,
         content TEXT NOT NULL,
         category TEXT NOT NULL,
+		image_url TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users (id)
@@ -296,6 +301,7 @@ func GetAllPosts(category string) ([]Post, error) {
 		}
 		post.Preview = utils.TruncateContent(post.Content, 30) // Limit to 30 words
 		post.CreatedAtHuman = utils.TimeAgo(post.CreatedAt)    // Populate human-readable time
+		post.ImageURL = "/static/images/default-post.jpg" // Adjust this path as needed
 		posts = append(posts, post)
 	}
 	return posts, nil
@@ -410,4 +416,11 @@ func GetReactionCounts(postID int) (int, int, error) {
 	}
 
 	return likes, dislikes, nil
+}
+
+// CreatePostWithImage creates a new post with an optional image.
+func CreatePostWithImage(userID int, title, content, category, imageURL string) error {
+	query := `INSERT INTO posts (user_id, title, content, category, image_url) VALUES (?, ?, ?, ?, ?)`
+	_, err := DB.Exec(query, userID, title, content, category, imageURL)
+	return err
 }
