@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -13,6 +14,12 @@ import (
 )
 
 var templates *template.Template
+
+// At the top of your handlers package, add this type definition
+type contextKey string
+
+// Define your key constant
+const userIDKey contextKey = "user_id"
 
 func init() {
 	// Parse all templates in one go
@@ -140,7 +147,7 @@ func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 	// List all available templates
 	// fmt.Println("Available templates:", templates.Templates())
 
-	userID := r.Context().Value("user_id").(int) // Retrieve the logged-in user's ID from the context
+	userID := r.Context().Value(userIDKey).(int) // Retrieve the logged-in user's ID from the context
 
 	// var username string
 	// query := `SELECT username FROM users WHERE id = ?`
@@ -219,8 +226,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
-
-		context := context.WithValue(r.Context(), "user_id", userID)
+		context := context.WithValue(r.Context(), userIDKey, userID)
 		next.ServeHTTP(w, r.WithContext(context))
 	})
 }
@@ -251,40 +257,40 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 
 // CreatePostHandler handles creating new posts
 func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
-    if r.Method == http.MethodGet {
-        categories, err := database.GetCategories()
-        if err != nil {
-            http.Error(w, "Failed to load categories", http.StatusInternalServerError)
-            return
-        }
+	if r.Method == http.MethodGet {
+		categories, err := database.GetCategories()
+		if err != nil {
+			http.Error(w, "Failed to load categories", http.StatusInternalServerError)
+			return
+		}
 
-        data := map[string]interface{}{
-            "Title":      "Create Post - Forum",
-            "IsLoggedIn": true,
-            "Categories": categories,
-        }
+		data := map[string]interface{}{
+			"Title":      "Create Post - Forum",
+			"IsLoggedIn": true,
+			"Categories": categories,
+		}
 
-        err = templates.ExecuteTemplate(w, "create-post", data)
-        if err != nil {
-            http.Error(w, "Error rendering template", http.StatusInternalServerError)
-        }
-        return
-    }
+		err = templates.ExecuteTemplate(w, "create-post", data)
+		if err != nil {
+			http.Error(w, "Error rendering template", http.StatusInternalServerError)
+		}
+		return
+	}
 
-    if r.Method == http.MethodPost {
-        userID := r.Context().Value("user_id").(int)
-        title := r.FormValue("title")
-        content := r.FormValue("content")
-        category := r.FormValue("category")
+	if r.Method == http.MethodPost {
+		userID := r.Context().Value(userIDKey).(int)
+		title := r.FormValue("title")
+		content := r.FormValue("content")
+		category := r.FormValue("category")
 
-        err := database.CreatePost(userID, title, content, category)
-        if err != nil {
-            http.Error(w, "Error creating post", http.StatusInternalServerError)
-            return
-        }
+		err := database.CreatePost(userID, title, content, category)
+		if err != nil {
+			http.Error(w, "Error creating post", http.StatusInternalServerError)
+			return
+		}
 
-        http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
-    }
+		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+	}
 }
 
 // ListPostsHandler displays all posts
@@ -362,10 +368,10 @@ func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		categories, err := database.GetCategories()
-        if err != nil {
-            http.Error(w, "Failed to load categories", http.StatusInternalServerError)
-            return
-        }
+		if err != nil {
+			http.Error(w, "Failed to load categories", http.StatusInternalServerError)
+			return
+		}
 
 		// Debugging: Log the retrieved post
 		fmt.Printf("Post data: %+v\n", post)
@@ -426,7 +432,7 @@ func DeletePostHandler(w http.ResponseWriter, r *http.Request) {
 
 // LikePostHandler handles liking a post.
 func LikePostHandler(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value("user_id").(int)
+	userID := r.Context().Value(userIDKey).(int)
 	postIDStr := r.URL.Query().Get("id")
 
 	postID, err := strconv.Atoi(postIDStr)
@@ -435,7 +441,7 @@ func LikePostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = database.AddReaction(userID, postID, "like")
+	err = database.ToggleReaction(userID, postID, "like")
 	if err != nil {
 		http.Error(w, "Failed to like post", http.StatusInternalServerError)
 		return
@@ -450,7 +456,7 @@ func LikePostHandler(w http.ResponseWriter, r *http.Request) {
 
 // DislikePostHandler handles disliking a post.
 func DislikePostHandler(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value("user_id").(int)
+	userID := r.Context().Value(userIDKey).(int)
 	postIDStr := r.URL.Query().Get("id")
 
 	postID, err := strconv.Atoi(postIDStr)
@@ -459,7 +465,7 @@ func DislikePostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = database.AddReaction(userID, postID, "dislike")
+	err = database.ToggleReaction(userID, postID, "dislike")
 	if err != nil {
 		http.Error(w, "Failed to dislike post", http.StatusInternalServerError)
 		return
@@ -479,7 +485,7 @@ func AddCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := r.Context().Value("user_id").(int)
+	userID := r.Context().Value(userIDKey).(int)
 	postIDStr := r.URL.Query().Get("post_id")
 	content := r.FormValue("comment")
 
@@ -501,4 +507,45 @@ func AddCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, fmt.Sprintf("/view-post?id=%d", postID), http.StatusSeeOther)
+}
+
+func ToggleReaction(userID, postID int, reactionType string) error {
+	// First, check if user has any existing reaction
+	var existingReaction string
+	err := database.DB.QueryRow(`
+		SELECT reaction_type 
+		FROM reactions 
+		WHERE user_id = ? AND post_id = ?
+	`, userID, postID).Scan(&existingReaction)
+
+	// If there's no existing reaction, add new one
+	if err == sql.ErrNoRows {
+		_, err = database.DB.Exec(`
+			INSERT INTO reactions (user_id, post_id, reaction_type) 
+			VALUES (?, ?, ?)
+		`, userID, postID, reactionType)
+		return err
+	}
+
+	// If there is an error other than no rows, return it
+	if err != nil {
+		return err
+	}
+
+	// If clicking the same reaction type, remove it
+	if existingReaction == reactionType {
+		_, err = database.DB.Exec(`
+			DELETE FROM reactions 
+			WHERE user_id = ? AND post_id = ?
+		`, userID, postID)
+		return err
+	}
+
+	// If changing reaction type, update it
+	_, err = database.DB.Exec(`
+		UPDATE reactions 
+		SET reaction_type = ? 
+		WHERE user_id = ? AND post_id = ?
+	`, reactionType, userID, postID)
+	return err
 }
