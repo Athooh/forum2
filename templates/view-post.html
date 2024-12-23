@@ -15,7 +15,7 @@
             {{end}}
         </div>
     </div>
-    <div class="posts">
+    <div class="posts post-container">
         <div class="post-header">
             <h3>{{.Post.Title}}</h3>
             <p>By <strong>{{.Post.Username}}</strong> in <strong>{{.Post.Category}}</strong></p>
@@ -24,6 +24,8 @@
         <div class="post-content">
             {{if .Post.ImageURL}}
             <img src="{{.Post.ImageURL}}" alt="Post Image" class="post-image-full">
+            {{else}}
+            <img src="/static/images/default-post.jpg" alt="Default Image" class="post-image-full">
             {{end}}
             <p>{{.Post.Content}}</p>
         </div>

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -262,6 +263,7 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		categories, err := database.GetCategories()
 		if err != nil {
+			log.Printf("Failed to load categories: %v", err)
 			http.Error(w, "Failed to load categories", http.StatusInternalServerError)
 			return
 		}
@@ -274,6 +276,7 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 
 		err = templates.ExecuteTemplate(w, "create-post", data)
 		if err != nil {
+			log.Printf("Failed to render create-post template: %v", err)
 			http.Error(w, "Error rendering template", http.StatusInternalServerError)
 		}
 		return
@@ -281,27 +284,39 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodPost {
 		// Parse multipart form for image upload
-		err := r.ParseMultipartForm(10 << 20) // Limit upload size to 10MB
+		err := r.ParseMultipartForm(10 << 20) // 10 MB limit
 		if err != nil {
+			log.Printf("Failed to parse multipart form: %v", err)
 			http.Error(w, "Failed to parse form data", http.StatusInternalServerError)
 			return
 		}
 
-		userID := r.Context().Value(userIDKey).(int)
+		userID, ok := r.Context().Value(userIDKey).(int)
+		if !ok {
+			log.Println("User ID not found in context")
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
 		title := r.FormValue("title")
 		content := r.FormValue("content")
 		category := r.FormValue("category")
 
-		// Handle image upload
-		file, header, err := r.FormFile("image")
-		var imageURL string
+		if title == "" || content == "" || category == "" {
+			log.Println("Missing required fields")
+			http.Error(w, "Title, content, and category are required", http.StatusBadRequest)
+			return
+		}
 
+		// Handle image upload
+		var imageURL string
+		file, header, err := r.FormFile("image")
 		if err == nil && header != nil {
 			defer file.Close()
-			// Save the uploaded file
 			imagePath := fmt.Sprintf("uploads/%d_%s", time.Now().Unix(), header.Filename)
 			dst, err := os.Create(imagePath)
 			if err != nil {
+				log.Printf("Failed to create image file: %v", err)
 				http.Error(w, "Failed to upload image", http.StatusInternalServerError)
 				return
 			}
@@ -309,15 +324,21 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 
 			_, err = io.Copy(dst, file)
 			if err != nil {
+				log.Printf("Failed to save image: %v", err)
 				http.Error(w, "Failed to save image", http.StatusInternalServerError)
 				return
 			}
-			imageURL = "/" + imagePath // Store relative path
+			imageURL = "/" + imagePath
+		} else if err != http.ErrMissingFile {
+			log.Printf("Error retrieving file: %v", err)
+			http.Error(w, "Failed to retrieve file", http.StatusInternalServerError)
+			return
 		}
 
 		// Save the post with optional image URL
 		err = database.CreatePostWithImage(userID, title, content, category, imageURL)
 		if err != nil {
+			log.Printf("Failed to create post: %v", err)
 			http.Error(w, "Error creating post", http.StatusInternalServerError)
 			return
 		}

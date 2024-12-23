@@ -74,8 +74,6 @@ func createTables() {
 		log.Fatalf("Failed to create sessions table: %v\n", err)
 	}
 
-	
-
 	postTable := `
 	
     CREATE TABLE IF NOT EXISTS posts (
@@ -199,11 +197,11 @@ func CreatePost(userID int, title, content, category string) error {
 
 // GetPost retrieves a single post by its ID.
 func GetPost(postID int) (*Post, error) {
-	query := `SELECT id, user_id, title, content, category, created_at, updated_at FROM posts WHERE id = ?`
+	query := `SELECT id, user_id, title, content, category, image_url, created_at, updated_at FROM posts WHERE id = ?`
 	row := DB.QueryRow(query, postID)
 
 	var post Post
-	err := row.Scan(&post.ID, &post.UserID, &post.Title, &post.Content, &post.Category, &post.CreatedAt, &post.UpdatedAt)
+	err := row.Scan(&post.ID, &post.UserID, &post.Title, &post.Content, &post.Category, &post.ImageURL, &post.CreatedAt, &post.UpdatedAt)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -221,7 +219,7 @@ func GetAllPosts(category string) ([]Post, error) {
 
 	if category != "" {
 		query := `
-		SELECT p.id, p.user_id, p.title, p.content, p.category, p.created_at, p.updated_at,
+		SELECT p.id, p.user_id, p.title, p.content, p.category, p.image_url, p.created_at, p.updated_at,
 		       IFNULL(likes.count, 0) AS likes, 
 		       IFNULL(dislikes.count, 0) AS dislikes,
 		       IFNULL(comments.count, 0) AS comments_count
@@ -249,7 +247,7 @@ func GetAllPosts(category string) ([]Post, error) {
 		rows, err = DB.Query(query, category)
 	} else {
 		query := `
-		SELECT p.id, p.user_id, p.title, p.content, p.category, p.created_at, p.updated_at,
+		SELECT p.id, p.user_id, p.title, p.content, p.category, p.image_url, p.created_at, p.updated_at,
 		       IFNULL(likes.count, 0) AS likes, 
 		       IFNULL(dislikes.count, 0) AS dislikes,
 		       IFNULL(comments.count, 0) AS comments_count
@@ -284,24 +282,36 @@ func GetAllPosts(category string) ([]Post, error) {
 	var posts []Post
 	for rows.Next() {
 		var post Post
+		var imageURL sql.NullString // Handle nullable image_url
+
 		err := rows.Scan(
 			&post.ID,
 			&post.UserID,
 			&post.Title,
 			&post.Content,
 			&post.Category,
+			&imageURL, // Added to retrieve the image URL
 			&post.CreatedAt,
 			&post.UpdatedAt,
 			&post.Likes,
 			&post.Dislikes,
-			&post.CommentsCount, // Add the new field for comments count
+			&post.CommentsCount,
 		)
 		if err != nil {
 			return nil, err
 		}
+
+		// Handle NULL image_url
+		if imageURL.Valid {
+			post.ImageURL = imageURL.String
+		} else {
+			post.ImageURL = "/static/images/default-post.jpg"
+		}
+
+		// Truncate content for preview and format time
 		post.Preview = utils.TruncateContent(post.Content, 30) // Limit to 30 words
 		post.CreatedAtHuman = utils.TimeAgo(post.CreatedAt)    // Populate human-readable time
-		post.ImageURL = "/static/images/default-post.jpg" // Adjust this path as needed
+
 		posts = append(posts, post)
 	}
 	return posts, nil
@@ -349,24 +359,23 @@ func GetCategoryPostCounts() (map[string]int, error) {
 
 // GetCategories retrieves all categories from the database.
 func GetCategories() ([]string, error) {
-    query := `SELECT name FROM categories ORDER BY name ASC`
-    rows, err := DB.Query(query)
-    if err != nil {
-        return nil, err
-    }
-    defer rows.Close()
+	query := `SELECT name FROM categories ORDER BY name ASC`
+	rows, err := DB.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-    var categories []string
-    for rows.Next() {
-        var name string
-        if err := rows.Scan(&name); err != nil {
-            return nil, err
-        }
-        categories = append(categories, name)
-    }
-    return categories, nil
+	var categories []string
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			return nil, err
+		}
+		categories = append(categories, name)
+	}
+	return categories, nil
 }
-
 
 // AddReaction toggles a like or dislike reaction on a post.
 func ToggleReaction(userID, postID int, reaction string) error {
@@ -397,7 +406,6 @@ func ToggleReaction(userID, postID int, reaction string) error {
 	_, err = DB.Exec(updateQuery, reaction, userID, postID)
 	return err
 }
-
 
 // GetReactionCounts returns the number of likes and dislikes for a post.
 func GetReactionCounts(postID int) (int, int, error) {
