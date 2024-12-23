@@ -22,6 +22,9 @@
             <p>Posted on {{.Post.CreatedAtHuman}}</p>
         </div>
         <div class="post-content">
+            {{if .Post.ImageURL}}
+            <img src="{{.Post.ImageURL}}" alt="Post Image" class="post-image-full">
+            {{end}}
             <p>{{.Post.Content}}</p>
         </div>
         <div class="post-footer">

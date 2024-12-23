@@ -48,6 +48,9 @@
             </div>
             <div class="post">
                 <h4><a href="/view-post?id={{.ID}}">{{.Title}}</a></h4> <!-- Link to view post -->
+                {{if .ImageURL}}
+                <img src="{{.ImageURL}}" alt="Post Image" class="post-image-preview">
+                {{end}}
                 <p>{{.Preview}}</p>
                 <div class="reaction">
                     <i class="btn-like" data-id="{{.ID}}"><i class="fa-regular fa-thumbs-up"></i> <span>{{.Likes}}</span></i>

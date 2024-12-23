@@ -4,7 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"io"
 	"net/http"
+	"os"
 	"strconv"
 	"text/template"
 	"time"
@@ -278,12 +280,43 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodPost {
+		// Parse multipart form for image upload
+		err := r.ParseMultipartForm(10 << 20) // Limit upload size to 10MB
+		if err != nil {
+			http.Error(w, "Failed to parse form data", http.StatusInternalServerError)
+			return
+		}
+
 		userID := r.Context().Value(userIDKey).(int)
 		title := r.FormValue("title")
 		content := r.FormValue("content")
 		category := r.FormValue("category")
 
-		err := database.CreatePost(userID, title, content, category)
+		// Handle image upload
+		file, header, err := r.FormFile("image")
+		var imageURL string
+
+		if err == nil && header != nil {
+			defer file.Close()
+			// Save the uploaded file
+			imagePath := fmt.Sprintf("uploads/%d_%s", time.Now().Unix(), header.Filename)
+			dst, err := os.Create(imagePath)
+			if err != nil {
+				http.Error(w, "Failed to upload image", http.StatusInternalServerError)
+				return
+			}
+			defer dst.Close()
+
+			_, err = io.Copy(dst, file)
+			if err != nil {
+				http.Error(w, "Failed to save image", http.StatusInternalServerError)
+				return
+			}
+			imageURL = "/" + imagePath // Store relative path
+		}
+
+		// Save the post with optional image URL
+		err = database.CreatePostWithImage(userID, title, content, category, imageURL)
 		if err != nil {
 			http.Error(w, "Error creating post", http.StatusInternalServerError)
 			return
