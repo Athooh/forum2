@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"forum/database"
 	"forum/handlers"
@@ -15,7 +16,13 @@ func main() {
 	// Serve static files (CSS, JS)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 	// handles uploaded files
-	http.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
+	http.HandleFunc("/uploads/", func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, ".jpg") || strings.HasSuffix(r.URL.Path, ".png") {
+			http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))).ServeHTTP(w, r)
+		} else {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+		}
+	})
 
 	// Define explicit routes
 	http.HandleFunc("/", handlers.HomeHandler)
