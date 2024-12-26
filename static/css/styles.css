@@ -137,6 +137,31 @@ header.header-container {
     margin-left: 10px;
 }
 
+/* password input container */
+.password-input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    cursor: pointer;
+    color: #666;
+    padding: 5px;
+}
+
+.toggle-password:hover {
+    color: #333;
+}
+
+.password-input-container input {
+    width: 100%;
+    padding-right: 35px; /* Make room for the eye icon */
+}
+
+
 .password-hint {
     font-size: 0.9em;
     margin-top: 10px;
@@ -507,7 +532,7 @@ header.header-container {
 } 
 
 .form-group input {
-    width: 98%;
+    width: 95%;
     /* margin: auto; */
     padding: 10px;
     border: 1px solid #ccc;
@@ -613,3 +638,53 @@ button.btn-submit:hover {
     margin-top: 20px;
     border-radius: 8px;
 }
+/* email validation */
+.email-error {
+    font-size: 0.9em;
+    margin-top: 5px;
+    color: #ff4444;
+    font-family: "poppins", sans-serif;
+}
+
+.form-group input:invalid {
+    border-color: #ff4444;
+}
+
+.form-group input:valid {
+    border-color: #4CAF50;
+}
+
+.error-message {
+    background-color: #ffebee;
+    color: #c62828;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: "poppins", sans-serif;
+    animation: fadeIn 0.3s ease-in;
+    opacity: 1;
+    transition: opacity 0.3s ease-out;
+}
+
+.error-message.fade-out {
+    opacity: 0;
+}
+
+.error-message i {
+    color: #c62828;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+

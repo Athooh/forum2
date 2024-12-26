@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 	"unicode"
@@ -71,6 +72,29 @@ func ValidatePasswordStrength(password string) error {
 	return nil
 }
 
+// ValidateEmail checks if an email address is valid.
+func ValidateEmail(email string) error {
+	// Basic email validation regex
+	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+
+	if !emailRegex.MatchString(email) {
+		return errors.New("invalid email format")
+	}
+
+	// Check email length
+	if len(email) > 254 {
+		return errors.New("email address is too long")
+	}
+
+	// Check local part length
+	parts := strings.Split(email, "@")
+	if len(parts[0]) > 64 {
+		return errors.New("email username part is too long")
+	}
+
+	return nil
+}
+
 // TimeAgo converts a timestamp into a human-readable string like "5 mins ago"
 func TimeAgo(t time.Time) string {
 	duration := time.Since(t)
@@ -111,3 +135,5 @@ func TruncateContent(content string, wordLimit int) string {
 	}
 	return content
 }
+
+

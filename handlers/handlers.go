@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"text/template"
 	"time"
 
@@ -64,13 +65,21 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		query := `SELECT id, password FROM users WHERE username = ?`
 		err := database.DB.QueryRow(query, username).Scan(&id, &hashedPassword)
 		if err != nil {
-			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+			data := map[string]interface{}{
+				"Title": "Login - Forum",
+				"Error": "Invalid username or password",
+			}
+			templates.ExecuteTemplate(w, "login", data)
 			return
 		}
 
 		err = utils.CheckPassword(hashedPassword, password)
 		if err != nil {
-			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+			data := map[string]interface{}{
+				"Title": "Login - Forum",
+				"Error": "Invalid username or password",
+			}
+			templates.ExecuteTemplate(w, "login", data)
 			return
 		}
 
@@ -100,18 +109,11 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func SignUpHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("SignupHandler invoked")
-
 	if r.Method == http.MethodGet {
 		data := map[string]interface{}{
 			"Title": "Signup - Forum",
 		}
-		err := templates.ExecuteTemplate(w, "signup", data)
-		if err != nil {
-			fmt.Printf("Error executing signup template: %v\n", err)
-			http.Error(w, "Error rendering template: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
+		templates.ExecuteTemplate(w, "signup", data)
 		return
 	}
 
@@ -120,23 +122,55 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		username := r.FormValue("username")
 		password := r.FormValue("password")
 
+		// Validate email format
+		if err := utils.ValidateEmail(email); err != nil {
+			data := map[string]interface{}{
+				"Title": "Signup - Forum",
+				"Error": err.Error(),
+			}
+			templates.ExecuteTemplate(w, "signup", data)
+			return
+		}
+
 		// Validate password strength
-		err := utils.ValidatePasswordStrength(password)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if err := utils.ValidatePasswordStrength(password); err != nil {
+			data := map[string]interface{}{
+				"Title": "Signup - Forum",
+				"Error": err.Error(),
+			}
+			templates.ExecuteTemplate(w, "signup", data)
 			return
 		}
 
 		hashedPassword, err := utils.HashPassword(password)
 		if err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			data := map[string]interface{}{
+				"Title": "Signup - Forum",
+				"Error": "Internal server error",
+			}
+			templates.ExecuteTemplate(w, "signup", data)
 			return
 		}
 
 		query := `INSERT INTO users (email, username, password) VALUES (?, ?, ?)`
 		_, err = database.DB.Exec(query, email, username, hashedPassword)
 		if err != nil {
-			http.Error(w, "User already exists", http.StatusConflict)
+			var errorMessage string
+			if strings.Contains(err.Error(), "UNIQUE constraint failed") {
+				if strings.Contains(err.Error(), "email") {
+					errorMessage = "This email is already registered"
+				} else {
+					errorMessage = "This username is already taken"
+				}
+			} else {
+				errorMessage = "An error occurred during registration"
+			}
+
+			data := map[string]interface{}{
+				"Title": "Signup - Forum",
+				"Error": errorMessage,
+			}
+			templates.ExecuteTemplate(w, "signup", data)
 			return
 		}
 
