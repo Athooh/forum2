@@ -46,8 +46,9 @@
                     <p>{{.Category}}</p>
                 </div>
             </div>
+            <a href="/view-post?id={{.ID}}">
             <div class="post">
-                <h4><a href="/view-post?id={{.ID}}">{{.Title}}</a></h4> <!-- Link to view post -->
+                <h4>{{.Title}}</h4> <!-- Link to view post -->
                  <div class="post-image">
                 <img src="{{.ImageURL}}" alt="Post Image" class="post-image-preview">
                  </div>
@@ -55,8 +56,15 @@
                 <div class="reaction">
                     <i class="btn-like" data-id="{{.ID}}"><i class="fa-regular fa-thumbs-up"></i> <span>{{.Likes}}</span></i>
                     <i class="btn-dislike" data-id="{{.ID}}"><i class="fa-regular fa-thumbs-down"></i> <span>{{.Dislikes}}</span></i>
-                    <i class="fa-regular fa-message"> {{.CommentsCount}}</i>
+                    <i class="btn-comment" data-id="{{.ID}}"><i class="fa-regular fa-message"></i> <span>{{.CommentsCount}}</span></i>
                     <i class="fa-solid fa-share-nodes"></i>
+                </div>
+                <div class="comment-form-container" id="comment-form-{{.ID}}" style="display: none;">
+                    <form action="/add-comment" method="POST" class="quick-comment-form">
+                        <input type="hidden" name="post_id" value="{{.ID}}">
+                        <textarea name="comment" placeholder="Write your comment..." required></textarea>
+                        <button type="submit" class="btn-submit-comment">Post Comment</button>
+                    </form>
                 </div>
                 
                 {{if eq .UserID $.UserID}} <!-- Show options only for the post owner -->
@@ -68,9 +76,9 @@
                 </div>
                 {{end}}
             </div>
+            </a>
         </div>
         {{end}}
     </div>
 </section>
-<script src="/static/js/dashboard.js"></script>
 {{end}}

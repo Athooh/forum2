@@ -688,3 +688,40 @@ button.btn-submit:hover {
     }
 }
 
+/* hidden comment form */
+
+.quick-comment-form {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+}
+
+.quick-comment-form textarea {
+    width: 100%;
+    min-height: 60px;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+}
+
+.btn-submit-comment {
+    background-color: var(--header-background);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.btn-submit-comment:hover {
+    background-color: #7c3aed;
+}
+
+.btn-comment {
+    cursor: pointer;
+}
+
