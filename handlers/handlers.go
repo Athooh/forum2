@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"io"
@@ -181,18 +180,9 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("SignupHandler invoked")
 
-	// List all available templates
-	// fmt.Println("Available templates:", templates.Templates())
-
 	userID := r.Context().Value(userIDKey).(int) // Retrieve the logged-in user's ID from the context
 
-	// var username string
-	// query := `SELECT username FROM users WHERE id = ?`
-	// err := database.DB.QueryRow(query, userID).Scan(&username)
-	// if err != nil {
-	//     http.Error(w, "User not found", http.StatusInternalServerError)
-	//     return
-	// }
+
 	posts, err := database.GetAllPosts("")
 	if err != nil {
 		http.Error(w, "Error retrieving posts", http.StatusInternalServerError)
@@ -246,26 +236,6 @@ func getUsername(userID int) string {
 		return ""
 	}
 	return username
-}
-
-func AuthMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie("session_token")
-		if err != nil {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-
-		var userID int
-		query := `SELECT user_id FROM sessions WHERE session_token = ? AND expires_at > ?`
-		err = database.DB.QueryRow(query, cookie.Value, time.Now()).Scan(&userID)
-		if err != nil {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-		context := context.WithValue(r.Context(), userIDKey, userID)
-		next.ServeHTTP(w, r.WithContext(context))
-	})
 }
 
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
@@ -636,4 +606,19 @@ func ToggleReaction(userID, postID int, reactionType string) error {
 		WHERE user_id = ? AND post_id = ?
 	`, reactionType, userID, postID)
 	return err
+}
+
+func EditCommentHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		commentID := r.URL.Query().Get("id")
+		content := r.FormValue("content")
+		
+		_, err := database.DB.Exec("UPDATE comments SET content = ? WHERE id = ?", content, commentID)
+		if err != nil {
+			http.Error(w, "Failed to update comment", http.StatusInternalServerError)
+			return
+		}
+		
+		http.Redirect(w, r, "/view-post?id="+r.URL.Query().Get("post_id"), http.StatusSeeOther)
+	}
 }
