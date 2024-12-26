@@ -135,5 +135,3 @@ func TruncateContent(content string, wordLimit int) string {
 	}
 	return content
 }
-
-

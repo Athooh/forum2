@@ -2,8 +2,10 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 	"forum/utils"
 	"log"
+	"strings"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -431,4 +433,25 @@ func CreatePostWithImage(userID int, title, content, category, imageURL string) 
 	query := `INSERT INTO posts (user_id, title, content, category, image_url) VALUES (?, ?, ?, ?, ?)`
 	_, err := DB.Exec(query, userID, title, content, category, imageURL)
 	return err
+}
+
+func VerifyResourceOwnership(userID int, resourceID string, resourceType string) (bool, error) {
+	var ownerID int
+	var query string
+
+	switch {
+	case strings.Contains(resourceType, "post"):
+		query = "SELECT user_id FROM posts WHERE id = ?"
+	case strings.Contains(resourceType, "comment"):
+		query = "SELECT user_id FROM comments WHERE id = ?"
+	default:
+		return false, fmt.Errorf("invalid resource type")
+	}
+
+	err := DB.QueryRow(query, resourceID).Scan(&ownerID)
+	if err != nil {
+		return false, err
+	}
+
+	return ownerID == userID, nil
 }

@@ -33,13 +33,20 @@ func main() {
 	// Wrap the DashboardHandler with AuthMiddleware
 	http.Handle("/dashboard", handlers.AuthMiddleware(http.HandlerFunc(handlers.DashboardHandler)))
 	http.Handle("/create-post", handlers.AuthMiddleware(http.HandlerFunc(handlers.CreatePostHandler)))
-	http.Handle("/posts", http.HandlerFunc(handlers.ListPostsHandler))
+	http.Handle("/posts", handlers.AuthMiddleware(http.HandlerFunc(handlers.ListPostsHandler)))
 	http.Handle("/view-post", http.HandlerFunc(handlers.ViewPostHandler))
-	http.Handle("/edit-post", handlers.AuthMiddleware(http.HandlerFunc(handlers.EditPostHandler)))
-	http.Handle("/delete-post", handlers.AuthMiddleware(http.HandlerFunc(handlers.DeletePostHandler)))
+	http.Handle("/edit-post", handlers.AuthMiddleware(
+		handlers.OwnershipMiddleware(
+			http.HandlerFunc(handlers.EditPostHandler))))
+	http.Handle("/delete-post", handlers.AuthMiddleware(
+		handlers.OwnershipMiddleware(
+			http.HandlerFunc(handlers.DeletePostHandler))))
 	http.Handle("/like-post", handlers.AuthMiddleware(http.HandlerFunc(handlers.LikePostHandler)))
 	http.Handle("/dislike-post", handlers.AuthMiddleware(http.HandlerFunc(handlers.DislikePostHandler)))
 	http.Handle("/add-comment", handlers.AuthMiddleware(http.HandlerFunc(handlers.AddCommentHandler)))
+	http.Handle("/edit-comment", handlers.AuthMiddleware(
+		handlers.OwnershipMiddleware(
+			http.HandlerFunc(handlers.EditCommentHandler))))
 
 	// Start the server
 	fmt.Println("Server starting at port localhost:8080")
