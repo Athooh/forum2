@@ -47,6 +47,7 @@ func main() {
 	http.Handle("/edit-comment", handlers.AuthMiddleware(
 		handlers.OwnershipMiddleware(
 			http.HandlerFunc(handlers.EditCommentHandler))))
+	http.Handle("/posts-by-category", handlers.AuthMiddleware(http.HandlerFunc(handlers.PostsByCategoryHandler)))
 
 	// Start the server
 	fmt.Println("Server starting at port localhost:8080")
