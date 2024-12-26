@@ -1,6 +1,12 @@
 {{define "signup"}}
 {{template "header" .}}
 <section class="signup-container">
+    {{if .Error}}
+    <div class="error-message">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        {{.Error}}
+    </div>
+    {{end}}
     <div class="title">
         <i class="fa-solid fa-user-plus"></i>
         <h2>Create your account</h2>
@@ -18,9 +24,12 @@
         </div>
         <div class="form-group">
             <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-             <!-- Progress Bar for password strength -->
-             <div id="strength-bar" class="strength-bar">
+            <div class="password-input-container">
+                <input type="password" id="password" name="password" required>
+                <i class="fa-regular fa-eye-slash toggle-password" id="togglePassword"></i>
+            </div>
+            <!-- Progress Bar for password strength -->
+            <div id="strength-bar" class="strength-bar">
                 <div id="strength-meter" class="strength-meter"></div>
             </div>
             <div id="strength-text" class="strength-text">Weak</div>
