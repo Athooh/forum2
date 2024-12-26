@@ -49,13 +49,15 @@
                     <p>{{.Category}}</p>
                 </div>
             </div>
-            <a href="/view-post?id={{.ID}}">
+           
             <div class="post">
+                <a href="/view-post?id={{.ID}}">
                 <h4>{{.Title}}</h4> <!-- Link to view post -->
                  <div class="post-image">
                 <img src="{{.ImageURL}}" alt="Post Image" class="post-image-preview">
                  </div>
                 <p>{{.Preview}}</p>
+                </a>
                 <div class="reaction">
                     <i class="btn-like" data-id="{{.ID}}"><i class="fa-regular fa-thumbs-up"></i> <span>{{.Likes}}</span></i>
                     <i class="btn-dislike" data-id="{{.ID}}"><i class="fa-regular fa-thumbs-down"></i> <span>{{.Dislikes}}</span></i>
@@ -69,7 +71,6 @@
                         <button type="submit" class="btn-submit-comment">Post Comment</button>
                     </form>
                 </div>
-                
                 {{if eq .UserID $.UserID}} <!-- Show options only for the post owner -->
                 <div class="post-options">
                     <a href="/edit-post?id={{.ID}}" class="btn-edit">Edit</a>
@@ -79,7 +80,7 @@
                 </div>
                 {{end}}
             </div>
-            </a>
+            
         </div>
         {{end}}
     </div>
