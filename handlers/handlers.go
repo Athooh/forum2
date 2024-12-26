@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -181,7 +182,6 @@ func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("SignupHandler invoked")
 
 	userID := r.Context().Value(userIDKey).(int) // Retrieve the logged-in user's ID from the context
-
 
 	posts, err := database.GetAllPosts("")
 	if err != nil {
@@ -612,13 +612,52 @@ func EditCommentHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		commentID := r.URL.Query().Get("id")
 		content := r.FormValue("content")
-		
+
 		_, err := database.DB.Exec("UPDATE comments SET content = ? WHERE id = ?", content, commentID)
 		if err != nil {
 			http.Error(w, "Failed to update comment", http.StatusInternalServerError)
 			return
 		}
-		
+
 		http.Redirect(w, r, "/view-post?id="+r.URL.Query().Get("post_id"), http.StatusSeeOther)
 	}
+}
+
+func PostsByCategoryHandler(w http.ResponseWriter, r *http.Request) {
+	category := r.URL.Query().Get("category")
+	if category == "" {
+		http.Error(w, "Category parameter is required", http.StatusBadRequest)
+		return
+	}
+
+	posts, err := database.GetAllPosts(category)
+	if err != nil {
+		http.Error(w, "Error retrieving posts", http.StatusInternalServerError)
+		return
+	}
+
+	// Get usernames for posts
+	for i := range posts {
+		var username string
+		err := database.DB.QueryRow("SELECT username FROM users WHERE id = ?", posts[i].UserID).Scan(&username)
+		if err != nil {
+			posts[i].Username = "Unknown"
+		} else {
+			posts[i].Username = username
+		}
+		// Add human-readable time if not already present
+		posts[i].CreatedAtHuman = utils.TimeAgo(posts[i].CreatedAt)
+		// Add preview if needed
+		if len(posts[i].Content) > 200 {
+			posts[i].Preview = posts[i].Content[:200] + "..."
+		} else {
+			posts[i].Preview = posts[i].Content
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"posts":   posts,
+	})
 }
