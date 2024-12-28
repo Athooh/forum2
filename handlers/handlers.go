@@ -36,9 +36,58 @@ func init() {
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	// Redirect to login if accessing root directly
-	if r.URL.Path == "/" {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
+
+	// Get all posts
+	posts, err := database.GetAllPosts("")
+	if err != nil {
+		http.Error(w, "Error retrieving posts", http.StatusInternalServerError)
+		return
+	}
+
+	// Get category counts
+	categoryCounts, err := database.GetCategoryPostCounts()
+	if err != nil {
+		http.Error(w, "Error retrieving category counts", http.StatusInternalServerError)
+		return
+	}
+
+	// Check if user is authenticated
+	userID := r.Context().Value(userIDKey)
+	isAuthenticated := userID != nil
+
+	// Get username if authenticated
+	var username string
+	if isAuthenticated {
+		username = getUsername(userID.(int))
+	}
+
+	// Add username to posts
+	for i := range posts {
+		posts[i].Username = getUsername(posts[i].UserID)
+		if len(posts[i].Content) > 200 {
+			posts[i].Preview = posts[i].Content[:200] + "..."
+		} else {
+			posts[i].Preview = posts[i].Content
+		}
+		posts[i].CreatedAtHuman = utils.TimeAgo(posts[i].CreatedAt)
+	}
+
+	data := map[string]interface{}{
+		"Title":           "Forum - Home",
+		"IsLoggedIn":      isAuthenticated,
+		"Username":        username,
+		"Posts":           posts,
+		"Categories":      categoryCounts,
+		"IsAuthenticated": isAuthenticated,
+	}
+
+	err = templates.ExecuteTemplate(w, "dashboard", data)
+	if err != nil {
+		http.Error(w, "Error rendering template", http.StatusInternalServerError)
 		return
 	}
 }
@@ -241,7 +290,7 @@ func getUsername(userID int) string {
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session_token")
 	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
@@ -259,7 +308,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 	})
 
-	http.Redirect(w, r, "/login", http.StatusSeeOther)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 // CreatePostHandler handles creating new posts
@@ -394,11 +443,16 @@ func ViewPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if user is authenticated
+	userID := r.Context().Value(userIDKey)
+	isAuthenticated := userID != nil
+
 	data := map[string]interface{}{
-		"Title":      post.Title + " - Forum",
-		"IsLoggedIn": true,
-		"Post":       post,
-		"Comments":   comments,
+		"Title":           post.Title + " - Forum",
+		"IsLoggedIn":      isAuthenticated,
+		"Post":            post,
+		"Comments":        comments,
+		"IsAuthenticated": isAuthenticated,
 	}
 
 	err = templates.ExecuteTemplate(w, "view-post", data)

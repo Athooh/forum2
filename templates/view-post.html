@@ -30,27 +30,37 @@
             <p>{{.Post.Content}}</p>
         </div>
         <div class="post-footer">
-            <h3>Comments</h3>
-            <div class="comments">
-                {{if .Comments}}
-                    {{range .Comments}}
-                    <div class="comment">
-                        <p><strong>{{.Username}}</strong> says:</p>
-                        <p>{{.Content}}</p>
-                        <p class="comment-time">Posted on:{{.CreatedAtHuman}}</p>
+            <div class="post-actions">
+                {{if .IsAuthenticated}}
+                    <div class="reaction">
+                        <i class="btn-like" data-id="{{.Post.ID}}">
+                            <i class="fa-regular fa-thumbs-up"></i> 
+                            <span>{{.Post.Likes}}</span>
+                        </i>
+                        <i class="btn-dislike" data-id="{{.Post.ID}}">
+                            <i class="fa-regular fa-thumbs-down"></i> 
+                            <span>{{.Post.Dislikes}}</span>
+                        </i>
                     </div>
-                    {{end}}
                 {{else}}
-                    <p>No comments yet. Be the first to comment!</p>
+                    <div class="guest-actions">
+                        <a href="/login" class="btn-login-prompt">Login to like or comment</a>
+                    </div>
                 {{end}}
             </div>
-            <form action="/add-comment?post_id={{.Post.ID}}" method="POST" class="comment-form">
-                <div class="form-group">
-                    <label for="comment">Add a Comment:</label>
-                    <textarea id="comment" name="comment" placeholder="Write your comment here" required></textarea>
-                </div>
-                <button type="submit" class="btn-submit">Post Comment</button>
-            </form>
+            <div class="comments-section">
+                <h3>Comments</h3>
+                {{if .IsAuthenticated}}
+                    <form action="/add-comment?post_id={{.Post.ID}}" method="POST" class="comment-form">
+                        <textarea name="comment" required></textarea>
+                        <button type="submit">Post Comment</button>
+                    </form>
+                {{else}}
+                    <div class="guest-comment-prompt">
+                        <p><a href="/login">Login</a> or <a href="/signup">Sign up</a> to join the discussion</p>
+                    </div>
+                {{end}}
+            </div>
         </div>
     </div>
 </section>

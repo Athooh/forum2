@@ -25,7 +25,7 @@ func main() {
 	})
 
 	// Define explicit routes
-	http.HandleFunc("/", handlers.HomeHandler)
+	http.Handle("/", handlers.GuestMiddleware(http.HandlerFunc(handlers.HomeHandler)))
 	http.HandleFunc("/login", handlers.LoginHandler)
 	http.HandleFunc("/signup", handlers.SignUpHandler)
 	http.HandleFunc("/logout", handlers.LogoutHandler)
@@ -34,7 +34,7 @@ func main() {
 	http.Handle("/dashboard", handlers.AuthMiddleware(http.HandlerFunc(handlers.DashboardHandler)))
 	http.Handle("/create-post", handlers.AuthMiddleware(http.HandlerFunc(handlers.CreatePostHandler)))
 	http.Handle("/posts", handlers.AuthMiddleware(http.HandlerFunc(handlers.ListPostsHandler)))
-	http.Handle("/view-post", http.HandlerFunc(handlers.ViewPostHandler))
+	http.Handle("/view-post", handlers.GuestMiddleware(http.HandlerFunc(handlers.ViewPostHandler)))
 	http.Handle("/edit-post", handlers.AuthMiddleware(
 		handlers.OwnershipMiddleware(
 			http.HandlerFunc(handlers.EditPostHandler))))

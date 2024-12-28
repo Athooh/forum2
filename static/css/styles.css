@@ -725,3 +725,46 @@ button.btn-submit:hover {
     cursor: pointer;
 }
 
+/* Guest Permission */
+.guest-actions {
+    max-width: 950px;
+    text-align: center;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    margin: 10px 0;
+}
+
+.btn-login-prompt {
+    display: inline-block;
+    padding: 8px 16px;
+    background-color: var(--header-background);
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.btn-login-prompt:hover {
+    background-color: #574bff;
+}
+
+.guest-comment-prompt {
+    max-width: 950px;
+    text-align: center;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    margin: 15px 0;
+}
+
+.guest-comment-prompt a {
+    color: var(--header-background);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.guest-comment-prompt a:hover {
+    text-decoration: underline;
+}
+
