@@ -422,9 +422,7 @@ func ListPostsHandler(w http.ResponseWriter, r *http.Request) {
 
 // ViewPostHandler displays a specific post
 func ViewPostHandler(w http.ResponseWriter, r *http.Request) {
-	postIDStr := r.URL.Query().Get("id") // Example: /view-post?id=123
-
-	// Convert postID from string to int
+	postIDStr := r.URL.Query().Get("id")
 	postID, err := strconv.Atoi(postIDStr)
 	if err != nil {
 		http.Error(w, "Invalid Post ID", http.StatusBadRequest)
@@ -432,7 +430,7 @@ func ViewPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	post, err := database.GetPost(postID)
-	if err != nil || post == nil {
+	if err != nil {
 		http.Error(w, "Post not found", http.StatusNotFound)
 		return
 	}
@@ -443,21 +441,45 @@ func ViewPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get category counts
+	categoryCounts, err := database.GetCategoryPostCounts()
+	if err != nil {
+		// Log the error but don't fail completely
+		fmt.Printf("Error getting category counts: %v\n", err)
+		categoryCounts = make(map[string]int) // Initialize empty map as fallback
+	}
+
 	// Check if user is authenticated
 	userID := r.Context().Value(userIDKey)
 	isAuthenticated := userID != nil
 
+	// Get username if authenticated
+	var username string
+	if isAuthenticated {
+		username = getUsername(userID.(int))
+	}
+
+	// Add username and time ago for each comment
+	for i := range comments {
+		comments[i].Username = getUsername(comments[i].UserID)
+		comments[i].CreatedAtHuman = utils.TimeAgo(comments[i].CreatedAt)
+	}
+
 	data := map[string]interface{}{
 		"Title":           post.Title + " - Forum",
 		"IsLoggedIn":      isAuthenticated,
+		"Username":        username,
 		"Post":            post,
 		"Comments":        comments,
 		"IsAuthenticated": isAuthenticated,
+		"UserID":          userID,
+		"Categories":      categoryCounts,
 	}
 
 	err = templates.ExecuteTemplate(w, "view-post", data)
 	if err != nil {
 		http.Error(w, "Error rendering template", http.StatusInternalServerError)
+		return
 	}
 }
 

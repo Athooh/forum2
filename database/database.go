@@ -335,28 +335,29 @@ func DeletePost(postID int) error {
 
 // GetCategoryPostCounts retrieves the number of posts for each category.
 func GetCategoryPostCounts() (map[string]int, error) {
-	// Query to count posts per category
-	query := `SELECT category, COUNT(*) FROM posts GROUP BY category`
+	query := `
+        SELECT category, COUNT(*) as count 
+        FROM posts 
+        GROUP BY category
+    `
+
 	rows, err := DB.Query(query)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	categoryCounts := make(map[string]int)
-
-	// Loop through the rows and store category counts in the map
+	counts := make(map[string]int)
 	for rows.Next() {
 		var category string
 		var count int
-		err := rows.Scan(&category, &count)
-		if err != nil {
+		if err := rows.Scan(&category, &count); err != nil {
 			return nil, err
 		}
-		categoryCounts[category] = count
+		counts[category] = count
 	}
 
-	return categoryCounts, nil
+	return counts, nil
 }
 
 // GetCategories retrieves all categories from the database.
