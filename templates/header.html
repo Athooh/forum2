@@ -12,8 +12,12 @@
 <body>
     <header class="header-container">
         <div class="menu">
+            {{if .IsLoggedIn}}
+            <a href="/dashboard">Forum</a>
+            {{else}}
             <!-- <i class="fa-solid fa-bars"></i> -->
             <a href="/">Forum</a>
+            {{end}}
         </div>
         <div class="search-bar">
             <input type="text" name="search" id="search-input" placeholder="Search discussions...">
