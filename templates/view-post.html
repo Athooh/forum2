@@ -31,8 +31,8 @@
         </div>
         <div class="post-footer">
             <div class="post-actions">
-                <div class="reaction">
-                    {{if .IsAuthenticated}}
+                {{if .IsAuthenticated}}
+                    <div class="reaction">
                         <i class="btn-like" data-id="{{.Post.ID}}">
                             <i class="fa-regular fa-thumbs-up"></i> 
                             <span>{{.Post.Likes}}</span>
@@ -41,15 +41,25 @@
                             <i class="fa-regular fa-thumbs-down"></i> 
                             <span>{{.Post.Dislikes}}</span>
                         </i>
-                    {{else}}
-                        <div class="guest-reaction">
+                        <i class="btn-comment" data-id="{{.Post.ID}}">
+                            <i class="fa-regular fa-message"></i> 
+                            <span>{{.Post.CommentsCount}}</span>
+                        </i>
+                        <i class="fa-solid fa-share-nodes"></i>
+                    </div>
+                {{else}}
+                    <div class="guest-reaction">
+                        <a href="/login" class="reaction-link">
                             <i class="fa-regular fa-thumbs-up"></i> 
                             <span>{{.Post.Likes}}</span>
                             <i class="fa-regular fa-thumbs-down"></i> 
                             <span>{{.Post.Dislikes}}</span>
-                        </div>
-                    {{end}}
-                </div>
+                            <i class="fa-regular fa-message"></i> 
+                            <span>{{.Post.CommentsCount}}</span>
+                            <i class="fa-solid fa-share-nodes"></i>
+                        </a>
+                    </div>
+                {{end}}
             </div>
 
             <div class="comments-section">

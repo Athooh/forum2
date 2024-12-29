@@ -26,6 +26,7 @@ type Post struct {
 	CommentsCount  int    // New field to store comment count
 	CreatedAtHuman string // Human-readable time difference
 	ImageURL       string // New field to store the image URL
+	IsOwner        bool   // New field to store if the post is owned by the current user
 }
 
 type Comment struct {
@@ -165,11 +166,11 @@ func AddComment(postID, userID int, content string) error {
 // GetCommentsByPostID retrieves all comments for a specific post ID.
 func GetCommentsByPostID(postID int) ([]Comment, error) {
 	query := `
-    SELECT c.id, c.post_id, c.user_id, c.content, c.created_at, u.username
-    FROM comments c
-    INNER JOIN users u ON c.user_id = u.id
-    WHERE c.post_id = ?
-    ORDER BY c.created_at ASC`
+        SELECT c.id, c.post_id, c.user_id, c.content, c.created_at, u.username
+        FROM comments c
+        LEFT JOIN users u ON c.user_id = u.id
+        WHERE c.post_id = ?
+        ORDER BY c.created_at DESC`
 
 	rows, err := DB.Query(query, postID)
 	if err != nil {
@@ -184,7 +185,7 @@ func GetCommentsByPostID(postID int) ([]Comment, error) {
 		if err != nil {
 			return nil, err
 		}
-		comment.CreatedAtHuman = utils.TimeAgo(comment.CreatedAt) // Populate human-readable time
+		comment.CreatedAtHuman = utils.TimeAgo(comment.CreatedAt)
 		comments = append(comments, comment)
 	}
 	return comments, nil
@@ -455,4 +456,34 @@ func VerifyResourceOwnership(userID int, resourceID string, resourceType string)
 	}
 
 	return ownerID == userID, nil
+}
+
+func GetPostByID(id int) (*Post, error) {
+	post := &Post{}
+	query := `
+		SELECT p.id, p.user_id, p.title, p.content, p.category, p.created_at, p.image_url,
+			   u.username,
+			   (SELECT COUNT(*) FROM post_reactions WHERE post_id = p.id AND reaction = 'like') as likes,
+			   (SELECT COUNT(*) FROM post_reactions WHERE post_id = p.id AND reaction = 'dislike') as dislikes
+		FROM posts p
+		LEFT JOIN users u ON p.user_id = u.id
+		WHERE p.id = ?`
+
+	err := DB.QueryRow(query, id).Scan(
+		&post.ID, &post.UserID, &post.Title, &post.Content, &post.Category,
+		&post.CreatedAt, &post.ImageURL, &post.Username, &post.Likes, &post.Dislikes)
+
+	if err != nil {
+		return nil, err
+	}
+
+	post.CreatedAtHuman = utils.TimeAgo(post.CreatedAt)
+	return post, nil
+}
+
+func GetCommentsCount(postID int) (int, error) {
+	var count int
+	query := `SELECT COUNT(*) FROM comments WHERE post_id = ?`
+	err := DB.QueryRow(query, postID).Scan(&count)
+	return count, err
 }

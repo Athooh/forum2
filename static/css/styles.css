@@ -460,6 +460,7 @@ header.header-container {
     border-radius: 4px;
     font-size: .9rem;
     padding: 4px 10px;
+    border: none;
 }
 
 .btn-edit:hover {

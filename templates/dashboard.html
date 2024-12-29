@@ -54,7 +54,7 @@
                 <a href="/view-post?id={{.ID}}">
                 <h4>{{.Title}}</h4> <!-- Link to view post -->
                  <div class="post-image">
-                <img src="{{.ImageURL}}" alt="Post Image" class="post-image-preview">
+                <img src="{{if .ImageURL}}{{.ImageURL}}{{else}}/static/images/default-post.jpg{{end}}" alt="Post Image" class="post-image-preview">
                  </div>
                 <p>{{.Preview}}</p>
                 </a>

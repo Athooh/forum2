@@ -4,35 +4,59 @@ document.addEventListener('DOMContentLoaded', () => {
     const likeButtons = document.querySelectorAll('.btn-like');
     const dislikeButtons = document.querySelectorAll('.btn-dislike');
 
-    if (likeButtons.length > 0) { // Only run if authenticated buttons exist
+    if (likeButtons.length > 0) {
         // Handle Like Button Click
         likeButtons.forEach(button => {
-            button.addEventListener('click', () => {
+            button.addEventListener('click', async () => {
                 const postId = button.getAttribute('data-id');
-                fetch(`/like-post?id=${postId}`, { method: 'POST' })
-                    .then(response => response.json())
-                    .then(data => {
-                        button.querySelector('span').innerText = data.likes;
-                        const dislikeButton = button.nextElementSibling;
-                        dislikeButton.querySelector('span').innerText = data.dislikes;
-                    })
-                    .catch(err => console.error('Error:', err));
+                try {
+                    const response = await fetch(`/like-post?id=${postId}`, { method: 'POST' });
+                    const data = await response.json();
+                    
+                    // Update all instances of this post's like/dislike counts
+                    updateReactionCounts(postId, data.likes, data.dislikes);
+                } catch (err) {
+                    console.error('Error:', err);
+                }
             });
         });
 
         // Handle Dislike Button Click
         dislikeButtons.forEach(button => {
-            button.addEventListener('click', () => {
+            button.addEventListener('click', async () => {
                 const postId = button.getAttribute('data-id');
-                fetch(`/dislike-post?id=${postId}`, { method: 'POST' })
-                    .then(response => response.json())
-                    .then(data => {
-                        button.querySelector('span').innerText = data.dislikes;
-                        const likeButton = button.previousElementSibling;
-                        likeButton.querySelector('span').innerText = data.likes;
-                    })
-                    .catch(err => console.error('Error:', err));
+                try {
+                    const response = await fetch(`/dislike-post?id=${postId}`, { method: 'POST' });
+                    const data = await response.json();
+                    
+                    // Update all instances of this post's like/dislike counts
+                    updateReactionCounts(postId, data.likes, data.dislikes);
+                } catch (err) {
+                    console.error('Error:', err);
+                }
             });
         });
     }
 });
+
+// Function to update all instances of a post's reaction counts
+function updateReactionCounts(postId, likes, dislikes) {
+    // Update in dashboard view
+    const dashboardLikeButtons = document.querySelectorAll(`.btn-like[data-id="${postId}"]`);
+    const dashboardDislikeButtons = document.querySelectorAll(`.btn-dislike[data-id="${postId}"]`);
+
+    dashboardLikeButtons.forEach(button => {
+        button.querySelector('span').innerText = likes;
+    });
+
+    dashboardDislikeButtons.forEach(button => {
+        button.querySelector('span').innerText = dislikes;
+    });
+
+    // Update in view-post view if we're on that page
+    const viewPostLikeButton = document.querySelector(`.post-actions .btn-like[data-id="${postId}"] span`);
+    const viewPostDislikeButton = document.querySelector(`.post-actions .btn-dislike[data-id="${postId}"] span`);
+
+    if (viewPostLikeButton) viewPostLikeButton.innerText = likes;
+    if (viewPostDislikeButton) viewPostDislikeButton.innerText = dislikes;
+}

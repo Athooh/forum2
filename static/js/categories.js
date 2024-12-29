@@ -37,21 +37,32 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <p>${post.Category}</p>
                                 </div>
                             </div>
-                            <a href="/view-post?id=${post.ID}">
                             <div class="post">
-                                <h4>${post.Title}</h4>
+                                <h4><a href="/view-post?id=${post.ID}">${post.Title}</a></h4>
                                 <div class="post-image">
-                                    <img src="${post.ImageURL || '/static/images/default-post.jpg'}" alt="Post Image" class="post-image-preview">
+                                    <img src="${post.ImageURL ? post.ImageURL : '/static/images/default-post.jpg'}" alt="Post Image" class="post-image-preview">
                                 </div>
                                 <p>${post.Preview}</p>
-                                <div class="reaction">
-                                    <i class="btn-like" data-id="${post.ID}"><i class="fa-regular fa-thumbs-up"></i> <span>${post.Likes}</span></i>
-                                    <i class="btn-dislike" data-id="${post.ID}"><i class="fa-regular fa-thumbs-down"></i> <span>${post.Dislikes}</span></i>
-                                    <i class="btn-comment" data-id="${post.ID}"><i class="fa-regular fa-message"></i> <span>${post.CommentsCount}</span></i>
-                                    <i class="fa-solid fa-share-nodes"></i>
-                                </div>
                             </div>
-                            </a>
+                            <div class="reaction">
+                                <i class="btn-like" data-id="${post.ID}"><i class="fa-regular fa-thumbs-up"></i> <span>${post.Likes}</span></i>
+                                <i class="btn-dislike" data-id="${post.ID}"><i class="fa-regular fa-thumbs-down"></i> <span>${post.Dislikes}</span></i>
+                                <i class="btn-comment" data-id="${post.ID}"><i class="fa-regular fa-message"></i> <span>${post.CommentsCount}</span></i>
+                                <i class="fa-solid fa-share-nodes"></i>
+                            </div>
+                            ${post.IsOwner ? `
+                                <div class="post-options">
+                                    <button class="btn-edit" data-id="${post.ID}" style="border: none">Edit</button>
+                                    <button class="btn-delete" data-id="${post.ID}" style="border: none">Delete</button>
+                                </div>
+                            ` : ''}
+                            <div class="comment-form-container" id="comment-form-${post.ID}" style="display: none;">
+                                <form action="/add-comment" method="POST" class="quick-comment-form">
+                                    <input type="hidden" name="post_id" value="${post.ID}">
+                                    <textarea name="comment" placeholder="Write your comment..." required></textarea>
+                                    <button type="submit" class="btn-submit-comment">Post Comment</button>
+                                </form>
+                            </div>
                         </div>
                     `).join('');
 
@@ -81,44 +92,81 @@ function initializeEventListeners() {
     const likeButtons = document.querySelectorAll('.btn-like');
     const dislikeButtons = document.querySelectorAll('.btn-dislike');
     const commentButtons = document.querySelectorAll('.btn-comment');
+    const editButtons = document.querySelectorAll('.btn-edit');
+    const deleteButtons = document.querySelectorAll('.btn-delete');
 
+    // Initialize like/dislike handlers
     likeButtons.forEach(button => {
-        button.addEventListener('click', (e) => {
-            e.preventDefault();
-            const postId = button.getAttribute('data-id');
-            fetch(`/like-post?id=${postId}`, { method: 'POST' })
-                .then(response => response.json())
-                .then(data => {
-                    button.querySelector('span').innerText = data.likes;
-                    const dislikeButton = button.nextElementSibling;
-                    dislikeButton.querySelector('span').innerText = data.dislikes;
-                })
-                .catch(err => console.error('Error:', err));
-        });
+        button.removeEventListener('click', handleLike);
+        button.addEventListener('click', handleLike);
     });
 
     dislikeButtons.forEach(button => {
-        button.addEventListener('click', (e) => {
-            e.preventDefault();
-            const postId = button.getAttribute('data-id');
-            fetch(`/dislike-post?id=${postId}`, { method: 'POST' })
-                .then(response => response.json())
-                .then(data => {
-                    button.querySelector('span').innerText = data.dislikes;
-                    const likeButton = button.previousElementSibling;
-                    likeButton.querySelector('span').innerText = data.likes;
-                })
-                .catch(err => console.error('Error:', err));
-        });
+        button.removeEventListener('click', handleDislike);
+        button.addEventListener('click', handleDislike);
     });
 
-    commentButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const postId = button.getAttribute('data-id');
-            const commentForm = document.getElementById(`comment-form-${postId}`);
-            if (commentForm) {
-                commentForm.style.display = commentForm.style.display === 'none' ? 'block' : 'none';
-            }
-        });
+    // Initialize edit handlers
+    editButtons.forEach(button => {
+        button.removeEventListener('click', handleEdit);
+        button.addEventListener('click', handleEdit);
     });
+
+    // Initialize delete handlers
+    deleteButtons.forEach(button => {
+        button.removeEventListener('click', handleDelete);
+        button.addEventListener('click', handleDelete);
+    });
+
+    // Initialize comment handlers
+    commentButtons.forEach(button => {
+        button.removeEventListener('click', handleComment);
+        button.addEventListener('click', handleComment);
+    });
+}
+
+// Handler functions
+function handleLike(e) {
+    e.preventDefault();
+    const postId = this.getAttribute('data-id');
+    fetch(`/like-post?id=${postId}`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => updateReactionCounts(postId, data.likes, data.dislikes))
+        .catch(err => console.error('Error:', err));
+}
+
+function handleDislike(e) {
+    e.preventDefault();
+    const postId = this.getAttribute('data-id');
+    fetch(`/dislike-post?id=${postId}`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => updateReactionCounts(postId, data.likes, data.dislikes))
+        .catch(err => console.error('Error:', err));
+}
+
+function handleEdit(e) {
+    e.preventDefault();
+    const postId = this.getAttribute('data-id');
+    window.location.href = `/edit-post?id=${postId}`;
+}
+
+function handleDelete(e) {
+    e.preventDefault();
+    const postId = this.getAttribute('data-id');
+    if (confirm('Are you sure you want to delete this post?')) {
+        fetch(`/delete-post?id=${postId}`, { method: 'POST' })
+            .then(response => {
+                if (response.ok) {
+                    document.getElementById(`post-${postId}`).remove();
+                }
+            })
+            .catch(err => console.error('Error:', err));
+    }
+}
+
+function handleComment(e) {
+    e.preventDefault();
+    const postId = this.getAttribute('data-id');
+    const commentForm = document.getElementById(`comment-form-${postId}`);
+    commentForm.style.display = commentForm.style.display === 'none' ? 'block' : 'none';
 } 

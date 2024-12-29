@@ -422,20 +422,39 @@ func ListPostsHandler(w http.ResponseWriter, r *http.Request) {
 
 // ViewPostHandler displays a specific post
 func ViewPostHandler(w http.ResponseWriter, r *http.Request) {
-	postIDStr := r.URL.Query().Get("id")
-	postID, err := strconv.Atoi(postIDStr)
+	postID := r.URL.Query().Get("id")
+	id, err := strconv.Atoi(postID)
 	if err != nil {
-		http.Error(w, "Invalid Post ID", http.StatusBadRequest)
+		http.Error(w, "Invalid post ID", http.StatusBadRequest)
 		return
 	}
 
-	post, err := database.GetPost(postID)
+	// Get post details
+	post, err := database.GetPostByID(id)
 	if err != nil {
 		http.Error(w, "Post not found", http.StatusNotFound)
 		return
 	}
 
-	comments, err := database.GetCommentsByPostID(postID)
+	// Get latest reaction counts
+	likes, dislikes, err := database.GetReactionCounts(id)
+	if err != nil {
+		http.Error(w, "Error getting reaction counts", http.StatusInternalServerError)
+		return
+	}
+
+	// Update post with latest counts
+	post.Likes = likes
+	post.Dislikes = dislikes
+
+	// Get comments count
+	commentsCount, err := database.GetCommentsCount(id)
+	if err != nil {
+		commentsCount = 0 // Default to 0 if error
+	}
+	post.CommentsCount = commentsCount
+
+	comments, err := database.GetCommentsByPostID(id)
 	if err != nil {
 		http.Error(w, "Error retrieving comments", http.StatusInternalServerError)
 		return
@@ -706,14 +725,20 @@ func PostsByCategoryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userID := r.Context().Value(userIDKey)
+	currentUserID := 0
+	if userID != nil {
+		currentUserID = userID.(int)
+	}
+
 	posts, err := database.GetAllPosts(category)
 	if err != nil {
 		http.Error(w, "Error retrieving posts", http.StatusInternalServerError)
 		return
 	}
 
-	// Get usernames for posts
 	for i := range posts {
+		// Get username
 		var username string
 		err := database.DB.QueryRow("SELECT username FROM users WHERE id = ?", posts[i].UserID).Scan(&username)
 		if err != nil {
@@ -721,9 +746,23 @@ func PostsByCategoryHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			posts[i].Username = username
 		}
-		// Add human-readable time if not already present
+
+		// Get comments count
+		commentsCount, err := database.GetCommentsCount(posts[i].ID)
+		if err != nil {
+			posts[i].CommentsCount = 0
+		} else {
+			posts[i].CommentsCount = commentsCount
+		}
+
+		// Get reaction counts
+		likes, dislikes, _ := database.GetReactionCounts(posts[i].ID)
+		posts[i].Likes = likes
+		posts[i].Dislikes = dislikes
+
+		// Set ownership and format content
+		posts[i].IsOwner = (posts[i].UserID == currentUserID)
 		posts[i].CreatedAtHuman = utils.TimeAgo(posts[i].CreatedAt)
-		// Add preview if needed
 		if len(posts[i].Content) > 200 {
 			posts[i].Preview = posts[i].Content[:200] + "..."
 		} else {
