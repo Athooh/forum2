@@ -4,26 +4,34 @@ document.addEventListener('DOMContentLoaded', () => {
     commentButtons.forEach(button => {
         button.addEventListener('click', () => {
             const postId = button.getAttribute('data-id');
-            const commentForm = document.getElementById(`comment-form-${postId}`);
             
-            // Check if user is authenticated by looking for user-info in the header
-            const isAuthenticated = document.querySelector('.user-info') !== null;
+            // Check if we're on the dashboard page
+            const isDashboard = window.location.pathname === '/dashboard' || 
+                              window.location.pathname === '/';
             
-            if (!isAuthenticated) {
-                // If not authenticated, show the login prompt
-                commentForm.style.display = commentForm.style.display === 'none' ? 'block' : 'none';
+            if (isDashboard) {
+                // Redirect to view-post page
+                window.location.href = `/view-post?id=${postId}#comments-section`;
                 return;
             }
             
-            // For authenticated users, proceed with normal comment form toggle
+            // Existing comment form logic for view-post page
+            const commentForm = document.getElementById(`comment-form-${postId}`);
+            const isAuthenticated = document.querySelector('.user-info') !== null;
+            
+            if (!isAuthenticated) {
+                const guestPrompt = commentForm.querySelector('.guest-comment-prompt');
+                if (guestPrompt) {
+                    commentForm.style.display = commentForm.style.display === 'none' ? 'block' : 'none';
+                }
+                return;
+            }
+            
             if (commentForm.style.display === 'none') {
-                // Hide all other open comment forms first
                 document.querySelectorAll('.comment-form-container').forEach(form => {
                     form.style.display = 'none';
                 });
-                // Show this comment form
                 commentForm.style.display = 'block';
-                // Focus on the textarea if it exists
                 const textarea = commentForm.querySelector('textarea');
                 if (textarea) {
                     textarea.focus();

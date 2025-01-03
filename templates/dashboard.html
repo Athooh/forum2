@@ -75,19 +75,7 @@
                         </div>
                     {{end}}
                 </div>
-                <div class="comment-form-container" id="comment-form-{{.ID}}" style="display: none;">
-                    {{if $.IsAuthenticated}}
-                        <form action="/add-comment" method="POST" class="quick-comment-form">
-                            <input type="hidden" name="post_id" value="{{.ID}}">
-                            <textarea name="comment" placeholder="Write your comment..." required></textarea>
-                            <button type="submit" class="btn-submit-comment">Post Comment</button>
-                        </form>
-                    {{else}}
-                        <div class="guest-comment-prompt">
-                            <p><a href="/login">Login</a> or <a href="/signup">Sign up</a> to join the discussion</p>
-                        </div>
-                    {{end}}
-                </div>
+              
                 {{if eq .UserID $.UserID}} <!-- Show options only for the post owner -->
                 <div class="post-options">
                     <a href="/edit-post?id={{.ID}}" class="btn-edit">Edit</a>

@@ -57,11 +57,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </div>
                             ` : ''}
                             <div class="comment-form-container" id="comment-form-${post.ID}" style="display: none;">
-                                <form action="/add-comment" method="POST" class="quick-comment-form">
-                                    <input type="hidden" name="post_id" value="${post.ID}">
-                                    <textarea name="comment" placeholder="Write your comment..." required></textarea>
-                                    <button type="submit" class="btn-submit-comment">Post Comment</button>
-                                </form>
+                                <div class="guest-comment-prompt">
+                                    <p>Click to view post and join the discussion</p>
+                                </div>
                             </div>
                         </div>
                     `).join('');
@@ -167,6 +165,7 @@ function handleDelete(e) {
 function handleComment(e) {
     e.preventDefault();
     const postId = this.getAttribute('data-id');
-    const commentForm = document.getElementById(`comment-form-${postId}`);
-    commentForm.style.display = commentForm.style.display === 'none' ? 'block' : 'none';
+    
+    // Always redirect to view-post page when comment button is clicked
+    window.location.href = `/view-post?id=${postId}#comments-section`;
 } 

@@ -26,12 +26,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     <div class="post">
                         <h4>${postTitle}</h4>
                         <p>${postContent}</p>
-                        <div class="reaction">
-                            <i class="fa-regular fa-thumbs-up"> 42</i>
-                            <i class="fa-regular fa-thumbs-down"> 2</i>
-                            <i class="fa-regular fa-message"> 12</i>
-                            <i class="fa-solid fa-share-nodes"></i>
-                        </div>
                     </div>
                 `;
             });
