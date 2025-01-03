@@ -9,6 +9,17 @@ document.addEventListener('DOMContentLoaded', () => {
         likeButtons.forEach(button => {
             button.addEventListener('click', async () => {
                 const postId = button.getAttribute('data-id');
+                const promptContainer = document.getElementById(`reaction-prompt-${postId}`);
+                
+                // Check if user is authenticated by looking for user-info in the header
+                const isAuthenticated = document.querySelector('.user-info') !== null;
+                
+                if (!isAuthenticated) {
+                    // Show guest prompt if not authenticated
+                    promptContainer.style.display = promptContainer.style.display === 'none' ? 'block' : 'none';
+                    return;
+                }
+
                 try {
                     const response = await fetch(`/like-post?id=${postId}`, { method: 'POST' });
                     const data = await response.json();
@@ -25,6 +36,17 @@ document.addEventListener('DOMContentLoaded', () => {
         dislikeButtons.forEach(button => {
             button.addEventListener('click', async () => {
                 const postId = button.getAttribute('data-id');
+                const promptContainer = document.getElementById(`reaction-prompt-${postId}`);
+                
+                // Check if user is authenticated by looking for user-info in the header
+                const isAuthenticated = document.querySelector('.user-info') !== null;
+                
+                if (!isAuthenticated) {
+                    // Show guest prompt if not authenticated
+                    promptContainer.style.display = promptContainer.style.display === 'none' ? 'block' : 'none';
+                    return;
+                }
+
                 try {
                     const response = await fetch(`/dislike-post?id=${postId}`, { method: 'POST' });
                     const data = await response.json();
@@ -35,6 +57,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error('Error:', err);
                 }
             });
+        });
+
+        // Close prompts when clicking elsewhere
+        document.addEventListener('click', (event) => {
+            if (!event.target.closest('.btn-like') && 
+                !event.target.closest('.btn-dislike') && 
+                !event.target.closest('.guest-reaction-prompt')) {
+                document.querySelectorAll('.reaction-prompt-container').forEach(container => {
+                    container.style.display = 'none';
+                });
+            }
         });
     }
 });

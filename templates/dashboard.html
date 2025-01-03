@@ -64,6 +64,17 @@
                     <i class="btn-comment" data-id="{{.ID}}"><i class="fa-regular fa-message"></i> <span>{{.CommentsCount}}</span></i>
                     <i class="fa-solid fa-share-nodes"></i>
                 </div>
+                <div class="reaction-prompt-container" id="reaction-prompt-{{.ID}}" style="display: none;">
+                    {{if $.IsAuthenticated}}
+                        <div class="reaction-actions">
+                            <!-- Reaction actions will be handled by JavaScript -->
+                        </div>
+                    {{else}}
+                        <div class="guest-reaction-prompt">
+                            <p><a href="/login">Login</a> or <a href="/signup">Sign up</a> to like or dislike the discussion</p>
+                        </div>
+                    {{end}}
+                </div>
                 <div class="comment-form-container" id="comment-form-{{.ID}}" style="display: none;">
                     {{if $.IsAuthenticated}}
                         <form action="/add-comment" method="POST" class="quick-comment-form">

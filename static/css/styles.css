@@ -435,6 +435,28 @@ header.header-container {
     cursor: pointer;
 }
 
+/* .reaction-prompt-container {
+    margin: 10px 0;
+}
+
+.guest-reaction-prompt {
+    text-align: center;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    margin: 10px 0;
+}
+
+.guest-reaction-prompt a {
+    color: var(--header-background);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.guest-reaction-prompt a:hover {
+    text-decoration: underline;
+} */
+
 /* Button Styles */
 .btn-create-post {
     display: inline-block;
@@ -750,7 +772,7 @@ button.btn-submit:hover {
     background-color: #574bff;
 }
 
-.guest-comment-prompt {
+.guest-comment-prompt, .guest-reaction-prompt {
     max-width: 950px;
     text-align: center;
     padding: 15px;
@@ -759,13 +781,13 @@ button.btn-submit:hover {
     margin: 15px 0;
 }
 
-.guest-comment-prompt a {
+.guest-comment-prompt a, .guest-reaction-prompt a {
     color: var(--header-background);
     text-decoration: none;
     font-weight: bold;
 }
 
-.guest-comment-prompt a:hover {
+.guest-comment-prompt a:hover, .guest-reaction-prompt a:hover {
     text-decoration: underline;
 }
 

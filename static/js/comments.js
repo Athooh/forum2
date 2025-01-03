@@ -6,8 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const postId = button.getAttribute('data-id');
             const commentForm = document.getElementById(`comment-form-${postId}`);
             
-            // Check if user is authenticated (look for quick-comment-form)
-            const isAuthenticated = commentForm.querySelector('.quick-comment-form') !== null;
+            // Check if user is authenticated by looking for user-info in the header
+            const isAuthenticated = document.querySelector('.user-info') !== null;
             
             if (!isAuthenticated) {
                 // If not authenticated, show the login prompt
@@ -38,6 +38,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.quick-comment-form').forEach(form => {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            // Check if user is authenticated
+            const isAuthenticated = document.querySelector('.user-info') !== null;
+            if (!isAuthenticated) {
+                return;
+            }
             
             const postId = form.querySelector('input[name="post_id"]').value;
             const comment = form.querySelector('textarea').value;
