@@ -6,7 +6,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const postId = button.getAttribute('data-id');
             const commentForm = document.getElementById(`comment-form-${postId}`);
             
-            // Toggle the comment form visibility
+            // Check if user is authenticated (look for quick-comment-form)
+            const isAuthenticated = commentForm.querySelector('.quick-comment-form') !== null;
+            
+            if (!isAuthenticated) {
+                // If not authenticated, show the login prompt
+                commentForm.style.display = commentForm.style.display === 'none' ? 'block' : 'none';
+                return;
+            }
+            
+            // For authenticated users, proceed with normal comment form toggle
             if (commentForm.style.display === 'none') {
                 // Hide all other open comment forms first
                 document.querySelectorAll('.comment-form-container').forEach(form => {
@@ -14,8 +23,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 // Show this comment form
                 commentForm.style.display = 'block';
-                // Focus on the textarea
-                commentForm.querySelector('textarea').focus();
+                // Focus on the textarea if it exists
+                const textarea = commentForm.querySelector('textarea');
+                if (textarea) {
+                    textarea.focus();
+                }
             } else {
                 commentForm.style.display = 'none';
             }
